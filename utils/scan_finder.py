@@ -56,19 +56,16 @@ class ScanFinder:
         Находит все файлы сканов, соответствующие базовому названию
         """
         matching_files = []
-
         for filename in os.listdir(self.scans_folder):
-            # Проверяем расширение файла
             if not any(filename.lower().endswith(ext) for ext in self.image_extensions):
                 continue
 
-            program_img_name, file_extension = os.path.splitext(filename.strip().lower())
-            program_img_name = program_img_name[:-1]
-
-            # Проверяем точное совпадение с базовым названием
-            if program_name.lower() == program_img_name:
-                matching_files.append(os.path.join(self.scans_folder, filename))
-
+            # Регулярка: Имя_файла + Цифра(1-3) в конце перед расширением
+            match = re.match(r'^(.+?)([123])\.(?:png|jpg|jpeg)$', filename.lower())
+            if match:
+                name_part, number = match.groups()
+                if program_name.lower() in name_part:
+                    matching_files.append(os.path.join(self.scans_folder, filename))
         return matching_files
 
     def _sort_scans(self, files: List[str]) -> Optional[Tuple[str, str, str]]:

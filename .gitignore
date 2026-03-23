@@ -232,3 +232,4 @@ modules/
 .env
 *.iml
 /backend/.idea
+/.idea

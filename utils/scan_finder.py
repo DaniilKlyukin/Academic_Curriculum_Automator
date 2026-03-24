@@ -3,28 +3,26 @@ import re
 import difflib
 from typing import List, Tuple, Optional
 from pathlib import Path
+from collections import defaultdict
 
 
 class ScanFinder:
-    def __init__(self, scans_folder: str, extensions: List[str] = None, threshold: float = 0.8):
+    def __init__(self, scans_folder: str, extensions: List[str] = None, threshold: float = 0.75):
         self.scans_folder = scans_folder
         self.extensions = extensions or ['.jpg', '.jpeg', '.png', '.pdf']
         self.threshold = threshold
 
     def _normalize(self, text: str) -> str:
-        """Очистка строки от мусора, пробелов и знаков препинания."""
-        if not text:
-            return ""
-        text = Path(text).stem
-        text = re.sub(r'^РП\s*', '', text, flags=re.IGNORECASE)
-        return re.sub(r'[^a-zа-я0-9]', '', text.lower())
+        """Очищает строку: РП Б1.О.01 Математика -> б1о01математика"""
+        if not text: return ""
+        stem = Path(text).stem
+        base = re.sub(r'^РП\s+', '', stem, flags=re.IGNORECASE)
+        return re.sub(r'[^a-zа-я0-9]', '', base.lower())
 
     def find_scans_for_program(self, program_name: str) -> Optional[Tuple[str, str, str]]:
-        norm_program = self._normalize(program_name)
-        if not norm_program:
-            return None
+        norm_doc = self._normalize(program_name)
 
-        candidates = {'1': [], '2': [], '3': []}
+        groups = defaultdict(dict)
 
         all_files = [f for f in os.listdir(self.scans_folder)
                      if any(f.lower().endswith(ext) for ext in self.extensions)]
@@ -34,20 +32,26 @@ class ScanFinder:
             if not match:
                 continue
 
-            index = match.group(1)
-            scan_base_raw = re.sub(r'[123]\.(?:png|jpg|jpeg|pdf)$', '', f, flags=re.IGNORECASE)
-            norm_scan = self._normalize(scan_base_raw)
+            idx = match.group(1)
+            raw_base = re.sub(r'[123]\.(?:png|jpg|jpeg|pdf)$', '', f, flags=re.IGNORECASE)
+            norm_base = self._normalize(raw_base)
 
-            similarity = difflib.SequenceMatcher(None, norm_program, norm_scan).ratio()
+            groups[norm_base][idx] = os.path.join(self.scans_folder, f)
+
+        scored_groups = []
+        for norm_base, files in groups.items():
+            if len(files) < 3:
+                continue
+
+            similarity = difflib.SequenceMatcher(None, norm_doc, norm_base).ratio()
 
             if similarity >= self.threshold:
-                candidates[index].append((similarity, os.path.join(self.scans_folder, f)))
+                scored_groups.append((similarity, files))
 
-        result = []
-        for i in ['1', '2', '3']:
-            if not candidates[i]:
-                return None
-            best_match = sorted(candidates[i], key=lambda x: x[0], reverse=True)[0]
-            result.append(best_match[1])
+        if not scored_groups:
+            return None
 
-        return tuple(result)
+        scored_groups.sort(key=lambda x: x[0], reverse=True)
+        best_group_files = scored_groups[0][1]
+
+        return (best_group_files['1'], best_group_files['2'], best_group_files['3'])

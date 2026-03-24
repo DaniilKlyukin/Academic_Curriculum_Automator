@@ -19,7 +19,7 @@ class WordImageCleanerDocx:
         self.input_dir = Path(input_dir)
 
     def process_all(self):
-        files = list(self.input_dir.glob("*.docx"))
+        files = list(self.input_dir.rglob("*.docx"))
         for file_path in files:
             if not file_path.name.startswith("~$"):
                 self._clean_single_document(file_path)

@@ -19,22 +19,24 @@ def convert_doc_to_docx(folder_path: str):
 
     converted_count = 0
     try:
-        for filename in os.listdir(folder_path):
-            if filename.lower().endswith('.doc') and not filename.lower().endswith('.docx') and not filename.startswith('~$'):
-                doc_path = os.path.abspath(os.path.join(folder_path, filename))
-                docx_path = doc_path + 'x'
+        for root, _, filenames in os.walk(folder_path):
+            for filename in filenames:
+                if filename.lower().endswith('.doc') and not filename.lower().endswith(
+                        '.docx') and not filename.startswith('~$'):
+                    doc_path = os.path.abspath(os.path.join(root, filename))
+                    docx_path = doc_path + 'x'
 
-                if os.path.exists(docx_path):
-                    continue
+                    if os.path.exists(docx_path):
+                        continue
 
-                try:
-                    doc = word.Documents.Open(doc_path)
-                    doc.SaveAs2(docx_path, FileFormat=16)
-                    doc.Close()
-                    os.remove(doc_path)
-                    converted_count += 1
-                except Exception as e:
-                    logger.error(f"Ошибка {filename}: {e}")
+                    try:
+                        doc = word.Documents.Open(doc_path)
+                        doc.SaveAs2(docx_path, FileFormat=16)
+                        doc.Close()
+                        os.remove(doc_path)
+                        converted_count += 1
+                    except Exception as e:
+                        logger.error(f"Ошибка {filename}: {e}")
     finally:
         if word:
             word.Quit()

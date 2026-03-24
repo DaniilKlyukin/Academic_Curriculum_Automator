@@ -1,3 +1,4 @@
+import os
 from os import listdir, makedirs, remove
 from os.path import isfile, join, exists
 from pathlib import Path
@@ -48,10 +49,12 @@ class AnnotationExtractor:
 
     def extract_annotations(self, input_folder: str, output_folder: str):
         makedirs(output_folder, exist_ok=True)
-        files = [
-            join(input_folder, f) for f in listdir(input_folder)
-            if isfile(join(input_folder, f)) and any(f.lower().endswith(e) for e in self.extensions) and '~' not in f
-        ]
+        files = []
+        for root, _, filenames in os.walk(input_folder):
+            for f in filenames:
+                if any(f.lower().endswith(e) for e in self.extensions) and '~' not in f:
+                    files.append(join(root, f))
+
         with word_application() as word_app:
             for file_path in files:
                 self._process_single(word_app, file_path, output_folder)

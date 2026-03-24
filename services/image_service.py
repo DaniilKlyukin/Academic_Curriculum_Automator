@@ -13,14 +13,22 @@ class ImageToPDFService:
         if not src_dir.exists(): return
         dst_dir = Path(output_path) if output_path else src_dir / "PDF_Output"
         dst_dir.mkdir(parents=True, exist_ok=True)
-        files = sorted(
-            [f for f in os.listdir(src_dir) if f.lower().endswith(self.supported_ext) and not f.startswith('~$')])
 
-        groups = [files[i:i + self.images_per_pdf] for i in range(0, len(files), self.images_per_pdf)]
+        all_files = []
+        for root, _, filenames in os.walk(src_dir):
+            for f in sorted(filenames):
+                if f.lower().endswith(self.supported_ext) and not f.startswith('~$'):
+                    all_files.append(Path(root) / f)
+
+        groups = [all_files[i:i + self.images_per_pdf] for i in range(0, len(all_files), self.images_per_pdf)]
         for group in groups:
-            pdf_name = Path(group[0]).stem.rstrip('0123456789_ ')
+            pdf_name = group[0].stem.rstrip('0123456789_ ')
             try:
-                self._create_pdf(src_dir, group, dst_dir / f"{pdf_name}.pdf")
+                pdf = FPDF()
+                for img_path in group:
+                    pdf.add_page()
+                    pdf.image(str(img_path), 0, 0, 210, 297)
+                pdf.output(str(dst_dir / f"{pdf_name}.pdf"), "F")
             except Exception:
                 pass
 

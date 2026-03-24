@@ -21,22 +21,19 @@ class ScanFinder:
 
     def find_scans_for_program(self, program_name: str) -> Optional[Tuple[str, str, str]]:
         norm_doc = self._normalize(program_name)
-
         groups = defaultdict(dict)
 
-        all_files = [f for f in os.listdir(self.scans_folder)
-                     if any(f.lower().endswith(ext) for ext in self.extensions)]
+        for root, _, filenames in os.walk(self.scans_folder):
+            for f in filenames:
+                if any(f.lower().endswith(ext) for ext in self.extensions):
+                    match = re.search(r'([123])\.(?:png|jpg|jpeg|pdf)$', f.lower())
+                    if not match:
+                        continue
 
-        for f in all_files:
-            match = re.search(r'([123])\.(?:png|jpg|jpeg|pdf)$', f.lower())
-            if not match:
-                continue
-
-            idx = match.group(1)
-            raw_base = re.sub(r'[123]\.(?:png|jpg|jpeg|pdf)$', '', f, flags=re.IGNORECASE)
-            norm_base = self._normalize(raw_base)
-
-            groups[norm_base][idx] = os.path.join(self.scans_folder, f)
+                    idx = match.group(1)
+                    raw_base = re.sub(r'[123]\.(?:png|jpg|jpeg|pdf)$', '', f, flags=re.IGNORECASE)
+                    norm_base = self._normalize(raw_base)
+                    groups[norm_base][idx] = os.path.join(root, f)
 
         scored_groups = []
         for norm_base, files in groups.items():
@@ -44,7 +41,6 @@ class ScanFinder:
                 continue
 
             similarity = difflib.SequenceMatcher(None, norm_doc, norm_base).ratio()
-
             if similarity >= self.threshold:
                 scored_groups.append((similarity, files))
 
@@ -53,5 +49,4 @@ class ScanFinder:
 
         scored_groups.sort(key=lambda x: x[0], reverse=True)
         best_group_files = scored_groups[0][1]
-
         return (best_group_files['1'], best_group_files['2'], best_group_files['3'])

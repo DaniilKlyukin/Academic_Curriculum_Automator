@@ -41,7 +41,7 @@ def convert_doc_to_docx(folder_path: str):
     converted_count = 0
 
     try:
-        word = win32.gencache.EnsureDispatch('Word.Application')
+        word = win32.Dispatch('Word.Application')
         word.Visible = False
         word.DisplayAlerts = 0
         word.ScreenUpdating = False

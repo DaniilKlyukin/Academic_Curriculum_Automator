@@ -1,6 +1,14 @@
+import logging
 import os
 from services.signature_processor import process_docx_signatures
 
+logging.basicConfig(
+    filename='app_errors.log',
+    filemode='w',
+    level=logging.ERROR,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+    encoding='utf-8'
+)
 
 def main():
     print("=== Утилита замены ФИО и Должности в зонах подписей — Рекурсивный поиск ===")
@@ -20,34 +28,20 @@ def main():
         print("Ошибка: ФИО не могут быть пустыми.")
         return
 
-    stats = {"ok": 0, "skip": 0, "err": 0}
+    docx_files = [os.path.join(root, f) for root, _, fs in os.walk(dir_path)
+                  for f in fs if f.lower().endswith('.docx') and not f.startswith('~$')]
 
-    for root, dirs, files in os.walk(dir_path):
-        for filename in files:
-            if filename.lower().endswith('.docx') and not filename.startswith('~$'):
-                full_path = os.path.join(root, filename)
+    total = len(docx_files)
+    print(f"\n{'№':<9} | {'Статус':<8} | {'Файл'}")
+    print("-" * 80)
 
-                rel_path = os.path.relpath(full_path, dir_path)
+    for i, path in enumerate(docx_files, 1):
+        rel = os.path.relpath(path, dir_path)
+        success, msg = process_docx_signatures(path, old_fio, new_fio, old_title, new_title)
 
-                success, message = process_docx_signatures(
-                    full_path, old_fio, new_fio, old_title, new_title
-                )
+        status = "OK" if success else "SKIP"
 
-                if success:
-                    print(f"[OK] {rel_path}")
-                    stats["ok"] += 1
-                else:
-                    if "не найдены" in message:
-                        print(f"[SKIP] {rel_path} (Данные не обнаружены)")
-                        stats["skip"] += 1
-                    else:
-                        print(f"[ERR] {rel_path}: {message}")
-                        stats["err"] += 1
-
-    print(f"\nЗавершено!")
-    print(f"Обновлено: {stats['ok']}")
-    print(f"Пропущено: {stats['skip']}")
-    print(f"Ошибок: {stats['err']}")
+        print(f"[{i:03}/{total:03}] | {status:<8} | {os.path.basename(path)[:60]}")
 
 
 if __name__ == "__main__":

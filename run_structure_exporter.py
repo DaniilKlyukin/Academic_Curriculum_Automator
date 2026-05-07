@@ -1,6 +1,14 @@
+import logging
 import os
 from utils.structure_exporter import generate_tree
 
+logging.basicConfig(
+    filename='app_errors.log',
+    filemode='w',
+    level=logging.ERROR,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+    encoding='utf-8'
+)
 
 def main():
     print("--- Генератор структуры папок для ИИ (эффективный режим) ---")

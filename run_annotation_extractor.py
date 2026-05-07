@@ -1,29 +1,41 @@
 import logging
 import os
+import sys
 from services.annotation_extractor import AnnotationExtractor
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-logger = logging.getLogger(__name__)
-
+logging.basicConfig(
+    filename='app_errors.log',
+    filemode='w',
+    level=logging.ERROR,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+    encoding='utf-8'
+)
 
 def main():
-    print("=== Извлечение аннотаций (3-я страница) в PDF ===")
-    input_dir = input("Путь к папке с РП (docx): ").strip().strip('"')
-    output_dir = input("Путь к папке для сохранения аннотаций: ").strip().strip('"')
+    print("\n" + "="*50)
+    print("=== ИЗВЛЕЧЕНИЕ АННОТАЦИЙ (СТРАНИЦА 3) ===")
+    print("="*50)
 
-    if not os.path.exists(input_dir):
-        print("Ошибка: Путь не найден.")
+    input_dir = input("Путь к папке с РП (.docx): ").strip().strip('"')
+    output_dir = input("Куда сохранять PDF-аннотации: ").strip().strip('"')
+
+    if not os.path.isdir(input_dir):
+        print(f"Ошибка: Путь не найден: {input_dir}")
         return
 
-    # По умолчанию извлекаем 3-ю страницу
+    # Извлекаем 3-ю страницу
     extractor = AnnotationExtractor(annotation_page=3)
 
     try:
         extractor.extract_annotations(input_dir, output_dir)
-        print(f"\n[Готово] Аннотации сохранены в: {output_dir}")
+        print("\n" + "="*50)
+        print(f"ГОТОВО! Результаты в: {output_dir}")
+        if os.path.getsize('annotation_errors.log') > 0:
+            print("В процессе были ошибки. См. annotation_errors.log")
     except Exception as e:
-        logger.error(f"Критическая ошибка: {e}")
+        print(f"\nКритическая ошибка: {e}")
 
+    input("\nНажмите Enter, чтобы выйти...")
 
 if __name__ == "__main__":
     main()

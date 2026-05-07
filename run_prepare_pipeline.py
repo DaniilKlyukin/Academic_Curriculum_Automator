@@ -7,8 +7,13 @@ from services.signature_processor import process_docx_signatures
 from utils.filename_cleaner import FilenameCleaner
 from utils.file_cleaner import FileCleaner
 
-logging.basicConfig(level=logging.INFO, format="%(message)s")
-
+logging.basicConfig(
+    filename='app_errors.log',
+    filemode='w',
+    level=logging.ERROR,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+    encoding='utf-8'
+)
 
 def main():
     folder_path = input("Введите путь к папке: ").strip().strip('"')
@@ -42,18 +47,16 @@ def main():
 
     docx_files = [f for f in os.listdir(folder_path) if f.lower().endswith('.docx') and not f.startswith('~$')]
 
-    print("\n[4/6] Обновление учебных лет в Листах согласования...")
+    print("\n[4/6] Листы согласования...")
     years_list = generate_years(start_y, end_y)
-    for filename in docx_files:
-        process_docx(os.path.join(folder_path, filename), years_list)
+    for i, filename in enumerate(docx_files, 1):
+        success, _ = process_docx(os.path.join(folder_path, filename), years_list)
+        print(f" [{i}/{len(docx_files)}] Обработка: {filename[:40]}...", end='\r')
 
-    print("\n[5/6] Замена ФИО и Должностей в зонах подписей...")
-    for filename in docx_files:
-        process_docx_signatures(
-            os.path.join(folder_path, filename),
-            old_fio, new_fio,
-            old_title, new_title
-        )
+    print("\n\n[5/6] Зоны подписей...")
+    for i, filename in enumerate(docx_files, 1):
+        process_docx_signatures(os.path.join(folder_path, filename), old_fio, new_fio, old_title, new_title)
+        print(f" [{i}/{len(docx_files)}] Обновление: {filename[:40]}...", end='\r')
 
     print("\n[6/6] Очистка имен файлов...")
     fn_cleaner = FilenameCleaner(folder_path)

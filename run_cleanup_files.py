@@ -1,6 +1,14 @@
 import os
 from utils.file_cleaner import FileCleaner
 
+logging.basicConfig(
+    filename='app_errors.log',
+    filemode='w',
+    level=logging.ERROR,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+    encoding='utf-8'
+)
+
 def main():
     print("=== Удаление PDF и изображений (JPG, PNG) ===")
     path = input("Введите путь к папке: ").strip().strip('"')

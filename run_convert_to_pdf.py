@@ -1,5 +1,14 @@
+import logging
 import os
 from utils.pdf_generator import PDFGenerator
+
+logging.basicConfig(
+    filename='app_errors.log',
+    filemode='w',
+    level=logging.ERROR,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+    encoding='utf-8'
+)
 
 def main():
     print("=== Рекурсивная конвертация DOCX/PPTX в PDF ===")

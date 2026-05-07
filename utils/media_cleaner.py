@@ -20,9 +20,14 @@ class WordImageCleanerDocx:
 
     def process_all(self):
         files = list(self.input_dir.rglob("*.docx"))
-        for file_path in files:
+        total = len(files)
+        print(f"\n{'№':<9} | {'Статус':<8} | {'Файл'}")
+        print("-" * 80)
+
+        for i, file_path in enumerate(files, 1):
             if not file_path.name.startswith("~$"):
                 self._clean_single_document(file_path)
+                print(f"[{i:03}/{total:03}] | {'DONE':<8} | {file_path.name[:60]}")
 
     def _clean_single_document(self, file_path: Path):
         try:

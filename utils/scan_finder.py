@@ -1,52 +1,62 @@
 import os
 import re
 import difflib
-from typing import List, Tuple, Optional
 from pathlib import Path
 from collections import defaultdict
 
 
 class ScanFinder:
-    def __init__(self, scans_folder: str, extensions: List[str] = None, threshold: float = 0.75):
-        self.scans_folder = scans_folder
-        self.extensions = extensions or ['.jpg', '.jpeg', '.png', '.pdf']
+    def __init__(self, scans_dir, threshold=0.6):
+        self.scans_dir = scans_dir
         self.threshold = threshold
+        self.groups = self._index_scans()
 
     def _normalize(self, text: str) -> str:
-        """Очищает строку: РП Б1.О.01 Математика -> б1о01математика"""
+        """Очистка: всё в нижний регистр, только буквы и цифры."""
         if not text: return ""
+        # Убираем расширение
         stem = Path(text).stem
+        # Убираем 'РП' в начале и лишние символы
         base = re.sub(r'^РП\s+', '', stem, flags=re.IGNORECASE)
         return re.sub(r'[^a-zа-я0-9]', '', base.lower())
 
-    def find_scans_for_program(self, program_name: str) -> Optional[Tuple[str, str, str]]:
-        norm_doc = self._normalize(program_name)
+    def _index_scans(self):
+        """Сканирует папку и группирует файлы по именам (без 1,2,3 в конце)."""
         groups = defaultdict(dict)
-
-        for root, _, filenames in os.walk(self.scans_folder):
+        for root, _, filenames in os.walk(self.scans_dir):
             for f in filenames:
-                if any(f.lower().endswith(ext) for ext in self.extensions):
-                    match = re.search(r'([123])\.(?:png|jpg|jpeg|pdf)$', f.lower())
-                    if not match:
-                        continue
+                if f.lower().endswith(('.jpg', '.jpeg', '.png')):
+                    # Ищем цифру 1, 2 или 3 перед расширением
+                    match = re.search(r'([123])\.(?:jpg|jpeg|png)$', f.lower())
+                    if match:
+                        idx = match.group(1)
+                        # Имя без цифры (база)
+                        raw_base = re.sub(r'[123]\.(?:jpg|jpeg|png)$', '', f, flags=re.IGNORECASE)
+                        norm_base = self._normalize(raw_base)
+                        groups[norm_base][idx] = os.path.join(root, f)
+        return groups
 
-                    idx = match.group(1)
-                    raw_base = re.sub(r'[123]\.(?:png|jpg|jpeg|pdf)$', '', f, flags=re.IGNORECASE)
-                    norm_base = self._normalize(raw_base)
-                    groups[norm_base][idx] = os.path.join(root, f)
+    def find_scans_for_program(self, doc_name: str):
+        norm_doc = self._normalize(doc_name)
+        best_match = None
+        max_score = 0
 
-        scored_groups = []
-        for norm_base, files in groups.items():
-            if len(files) < 3:
-                continue
+        for norm_base, files in self.groups.items():
+            if not norm_base: continue
 
-            similarity = difflib.SequenceMatcher(None, norm_doc, norm_base).ratio()
-            if similarity >= self.threshold:
-                scored_groups.append((similarity, files))
+            # 1. Проверка на прямое вхождение (самый надежный метод)
+            if norm_base in norm_doc:
+                # Чем длиннее совпавшая строка, тем выше приоритет
+                score = len(norm_base) / len(norm_doc) + 1.0
+            else:
+                # 2. Нечеткое сравнение (difflib) на случай опечаток
+                score = difflib.SequenceMatcher(None, norm_base, norm_doc).ratio()
 
-        if not scored_groups:
-            return None
+            if score > max_score and score >= self.threshold:
+                max_score = score
+                best_match = files
 
-        scored_groups.sort(key=lambda x: x[0], reverse=True)
-        best_group_files = scored_groups[0][1]
-        return (best_group_files['1'], best_group_files['2'], best_group_files['3'])
+        if best_match and len(best_match) >= 3:
+            return [best_match['1'], best_match['2'], best_match['3']], round(max_score, 2)
+
+        return [], 0

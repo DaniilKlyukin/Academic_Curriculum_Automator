@@ -1,6 +1,5 @@
 import os
 import win32com.client as win32
-from tqdm import tqdm
 import logging
 
 logging.basicConfig(level=logging.ERROR)
@@ -40,6 +39,10 @@ def convert_doc_to_docx(folder_path: str):
     word = None
     converted_count = 0
 
+    total = len(files_to_convert)
+    print(f"\n{'№':<9} | {'Статус':<8} | {'Файл'}")
+    print("-" * 80)
+
     try:
         word = win32.Dispatch('Word.Application')
         word.Visible = False
@@ -50,20 +53,20 @@ def convert_doc_to_docx(folder_path: str):
         word.Options.CheckSpellingAsYouType = False
         word.Options.BackgroundSave = False
 
-        pbar = tqdm(files_to_convert, unit="file", dynamic_ncols=True)
-
-        for doc_path, docx_path, filename in pbar:
-            pbar.set_description(f" {filename[:30]}")
+        for i, (doc_path, docx_path, filename) in enumerate(files_to_convert, 1):
+            status = "OK"
 
             try:
                 doc = word.Documents.Open(doc_path, AddToRecentFiles=False, ReadOnly=True, Visible=False)
                 doc.SaveAs2(docx_path, FileFormat=16)
                 doc.Close(0)
-
                 os.remove(doc_path)
                 converted_count += 1
             except Exception as e:
-                tqdm.write(f"Ошибка в {filename}: {e}")
+                status = "ERR"
+                logger.error(f"{filename}: {e}")
+
+            print(f"[{i:03}/{total:03}] | {status:<8} | {filename[:60]}")
 
     except Exception as e:
         logger.error(f"Критическая ошибка: {e}")

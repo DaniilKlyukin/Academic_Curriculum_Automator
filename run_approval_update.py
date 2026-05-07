@@ -2,7 +2,13 @@ import os
 import logging
 from services.approval_processor import process_docx, generate_years
 
-logging.basicConfig(level=logging.INFO, format="%(message)s")
+logging.basicConfig(
+    filename='app_errors.log',
+    filemode='w',
+    level=logging.ERROR,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+    encoding='utf-8'
+)
 
 
 def main():
@@ -21,23 +27,20 @@ def main():
         return
 
     years_list = generate_years(start_y, end_y)
-    processed = 0
-    errors = 0
 
     files = [f for f in os.listdir(folder_path) if f.lower().endswith('.docx') and not f.startswith('~$')]
+    total = len(files)
 
-    for filename in files:
+    print(f"\n{'№':<9} | {'Статус':<8} | {'Файл'}")
+    print("-" * 80)
+
+    for i, filename in enumerate(files, 1):
         file_path = os.path.join(folder_path, filename)
         success, message = process_docx(file_path, years_list)
 
-        if success:
-            print(f"[OK] {filename}")
-            processed += 1
-        else:
-            print(f"[SKIP] {filename} ({message})")
-            errors += 1
+        status = "OK" if success else "SKIP"
 
-    print(f"\nИтог: Обновлено: {processed}, Пропущено: {errors}")
+        print(f"[{i:03}/{total:03}] | {status:<8} | {os.path.basename(file_path)[:60]}")
 
 
 if __name__ == "__main__":

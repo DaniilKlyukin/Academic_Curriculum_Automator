@@ -1,7 +1,13 @@
 import logging
 from utils.filename_cleaner import FilenameCleaner
 
-logging.basicConfig(level=logging.INFO, format="%(message)s")
+logging.basicConfig(
+    filename='app_errors.log',
+    filemode='w',
+    level=logging.ERROR,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+    encoding='utf-8'
+)
 
 
 def main():

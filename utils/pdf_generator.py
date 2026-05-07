@@ -17,7 +17,6 @@ class PDFGenerator:
 
     def _get_word(self):
         if self.word is None:
-            # Используем Dispatch для стабильности (как обсуждали ранее)
             self.word = win32com.client.Dispatch("Word.Application")
             self.word.Visible = False
         return self.word
@@ -25,8 +24,6 @@ class PDFGenerator:
     def _get_ppt(self):
         if self.ppt is None:
             self.ppt = win32com.client.Dispatch("PowerPoint.Application")
-            # У PPT нет свойства Visible=False при создании через Dispatch,
-            # но его можно скрыть через настройки Window, если нужно.
         return self.ppt
 
     def convert_docx(self, docx_path):
@@ -47,7 +44,6 @@ class PDFGenerator:
         pdf_path = str(Path(pptx_path).with_suffix('.pdf'))
         try:
             ppt = self._get_ppt()
-            # WithWindow=False позволяет открывать презентацию в фоновом режиме
             pres = ppt.Presentations.Open(pptx_path, WithWindow=False)
             pres.SaveAs(pdf_path, FileFormat=32)  # 32 = ppSaveAsPDF
             pres.Close()
@@ -69,7 +65,6 @@ class PDFGenerator:
 
         for root, _, filenames in os.walk(folder_path):
             for filename in filenames:
-                # Пропускаем временные файлы Office
                 if filename.startswith('~$'):
                     continue
 
@@ -86,7 +81,7 @@ class PDFGenerator:
                     result = self.convert_pptx(full_path)
 
                 else:
-                    continue  # Пропускаем другие форматы
+                    continue
 
                 if result:
                     self.success_count += 1

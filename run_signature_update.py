@@ -36,7 +36,6 @@ def main():
     print("-" * 80)
 
     for i, path in enumerate(docx_files, 1):
-        rel = os.path.relpath(path, dir_path)
         success, msg = process_docx_signatures(path, old_fio, new_fio, old_title, new_title)
 
         status = "OK" if success else "SKIP"

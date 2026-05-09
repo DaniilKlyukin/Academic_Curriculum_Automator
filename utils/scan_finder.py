@@ -14,9 +14,7 @@ class ScanFinder:
     def _normalize(self, text: str) -> str:
         """Очистка: всё в нижний регистр, только буквы и цифры."""
         if not text: return ""
-        # Убираем расширение
         stem = Path(text).stem
-        # Убираем 'РП' в начале и лишние символы
         base = re.sub(r'^РП\s+', '', stem, flags=re.IGNORECASE)
         return re.sub(r'[^a-zа-я0-9]', '', base.lower())
 
@@ -26,11 +24,9 @@ class ScanFinder:
         for root, _, filenames in os.walk(self.scans_dir):
             for f in filenames:
                 if f.lower().endswith(('.jpg', '.jpeg', '.png')):
-                    # Ищем цифру 1, 2 или 3 перед расширением
                     match = re.search(r'([123])\.(?:jpg|jpeg|png)$', f.lower())
                     if match:
                         idx = match.group(1)
-                        # Имя без цифры (база)
                         raw_base = re.sub(r'[123]\.(?:jpg|jpeg|png)$', '', f, flags=re.IGNORECASE)
                         norm_base = self._normalize(raw_base)
                         groups[norm_base][idx] = os.path.join(root, f)
@@ -44,12 +40,9 @@ class ScanFinder:
         for norm_base, files in self.groups.items():
             if not norm_base: continue
 
-            # 1. Проверка на прямое вхождение (самый надежный метод)
             if norm_base in norm_doc:
-                # Чем длиннее совпавшая строка, тем выше приоритет
                 score = len(norm_base) / len(norm_doc) + 1.0
             else:
-                # 2. Нечеткое сравнение (difflib) на случай опечаток
                 score = difflib.SequenceMatcher(None, norm_base, norm_doc).ratio()
 
             if score > max_score and score >= self.threshold:

@@ -37,7 +37,6 @@ class AnnotationExtractor:
     def extract_annotations(self, input_folder: str, output_folder: str):
         os.makedirs(output_folder, exist_ok=True)
 
-        # Собираем файлы
         files = []
         for root, _, filenames in os.walk(input_folder):
             for f in filenames:

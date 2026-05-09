@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 import logging
 
-# Настройка логирования, чтобы видеть ошибки в консоли
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,5 @@
 import logging
 import os
-import sys
 from services.annotation_extractor import AnnotationExtractor
 
 logging.basicConfig(
@@ -23,7 +22,6 @@ def main():
         print(f"Ошибка: Путь не найден: {input_dir}")
         return
 
-    # Извлекаем 3-ю страницу
     extractor = AnnotationExtractor(annotation_page=3)
 
     try:

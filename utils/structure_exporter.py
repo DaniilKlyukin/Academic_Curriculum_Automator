@@ -61,13 +61,11 @@ def generate_tree(start_dir, max_depth, max_files_per_dir=10, indent_str="  "):
             return
 
         try:
-            # Получаем все элементы и фильтруем их
             entries = []
             for entry in os.scandir(current_dir):
                 if not entry.is_symlink() and not is_hidden(entry) and not should_exclude(entry.name):
                     entries.append(entry)
 
-            # Сортируем: сначала папки, потом файлы
             entries.sort(key=lambda e: (not e.is_dir(), e.name.lower()))
         except PermissionError:
             output.append(f"{indent_str * (current_depth + 1)}[Ошибка: Доступ запрещен]")
@@ -76,25 +74,20 @@ def generate_tree(start_dir, max_depth, max_files_per_dir=10, indent_str="  "):
             output.append(f"{indent_str * (current_depth + 1)}[Ошибка: {e}]")
             return
 
-        # Разделяем на папки и файлы для удобного лимитирования
         dirs = [e for e in entries if e.is_dir()]
         files = [e for e in entries if not e.is_dir()]
 
-        # Сначала обрабатываем все папки (их обычно не так много, как файлов)
         for d in dirs:
             prefix = indent_str * (current_depth + 1)
             output.append(f"{prefix}{d.name}/")
             walk(d.path, current_depth + 1)
 
-        # Затем обрабатываем файлы с учетом лимита
         num_files = len(files)
         prefix = indent_str * (current_depth + 1)
 
         if num_files > max_files_per_dir:
-            # Показываем только первые N файлов
             for f in files[:max_files_per_dir]:
                 output.append(f"{prefix}{f.name}")
-            # Добавляем инфо-строку о пропущенных файлах
             remaining = num_files - max_files_per_dir
             output.append(f"{prefix}... [и еще {remaining} файл(ов)]")
         else:

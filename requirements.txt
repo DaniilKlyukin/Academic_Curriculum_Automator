@@ -1,6 +1,7 @@
 comtypes~=1.4.12
 fitz~=0.0.1.dev2
-fpdf~=1.7.2
-pypdf~=6.9.2
 python_docx~=1.2.0
-pywin32~=311
+
+pathlib~=1.0.1
+easyocr~=1.7.2
+fpdf2~=2.8.7

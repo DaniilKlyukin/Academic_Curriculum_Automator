@@ -13,7 +13,6 @@ logging.basicConfig(
 def main():
     print("--- Генератор структуры папок для ИИ (эффективный режим) ---")
 
-    # 1. Путь
     target_path = input("Введите путь к папке (Enter для текущей): ").strip()
     if not target_path:
         target_path = os.getcwd()
@@ -22,14 +21,12 @@ def main():
         print(f"Ошибка: Путь '{target_path}' не найден.")
         return
 
-    # 2. Глубина
     try:
         depth_str = input("Глубина поиска (по умолчанию 2): ").strip()
         max_depth = int(depth_str) if depth_str else 2
     except ValueError:
         max_depth = 2
 
-    # 3. Лимит файлов
     try:
         limit_str = input("Макс. файлов в одной папке (по умолчанию 10): ").strip()
         max_files = int(limit_str) if limit_str else 10
@@ -38,7 +35,6 @@ def main():
 
     print(f"\nАнализирую структуру: {target_path}...")
 
-    # Генерируем дерево
     tree_text = generate_tree(target_path, max_depth, max_files_per_dir=max_files)
 
     output_filename = "project_structure_for_ai.txt"

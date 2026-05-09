@@ -1,14 +1,13 @@
 import os
 import tempfile
 import logging
-import fitz  # PyMuPDF
+import fitz
 from docx import Document
 from docx.shared import Mm
 from docx.oxml import parse_xml
 from docx.oxml.ns import nsdecls, nsmap
 from docx.enum.text import WD_BREAK
 
-# Senior-approach: Регистрация всех расширений MS Word для предотвращения KeyError
 EXT_NAMESPACES = {
     'wp14': 'http://schemas.microsoft.com/office/word/2010/wordml',
     'w14': 'http://schemas.microsoft.com/office/word/2010/wordml',
@@ -49,7 +48,7 @@ class DocxEditor:
             pdf_doc = fitz.open(path)
             page = pdf_doc.load_page(0)
             pix = page.get_pixmap(dpi=300)
-            # Используем mkstemp для надежности
+
             fd, tmp_path = tempfile.mkstemp(suffix=".png")
             os.close(fd)
             pix.save(tmp_path)
@@ -66,7 +65,6 @@ class DocxEditor:
         h_emu = int(height_mm * 36000)
         inline = shape._inline
 
-        # XML-конструкция для привязки к верхнему левому углу страницы
         anchor_xml = (
             f'<wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" '
             f'relativeHeight="251658240" behindDoc="0" locked="0" layoutInCell="1" '
@@ -93,19 +91,16 @@ class DocxEditor:
             return self.doc.paragraphs[0]
 
         current_page = 1
-        # Используем enumerate для безопасного получения индекса
         for i, p in enumerate(self.doc.paragraphs):
             p_xml = p._element.xml
             if 'w:br w:type="page"' in p_xml or 'lastRenderedPageBreak' in p_xml:
                 current_page += 1
                 if current_page == page_num:
-                    # Если есть следующий параграф — возвращаем его
                     if i + 1 < len(self.doc.paragraphs):
                         return self.doc.paragraphs[i + 1]
                     else:
                         return self.doc.add_paragraph()
 
-        # Если страниц не хватило, добавляем разрывы
         last_p = self.doc.paragraphs[-1]
         while current_page < page_num:
             last_p.add_run().add_break(WD_BREAK.PAGE)
@@ -118,7 +113,6 @@ class DocxEditor:
         p = self._get_paragraph_by_page(page_num)
         img_src = self._prepare_image(image_path)
         run = p.add_run()
-        # Ставим ширину 210мм (на весь лист A4)
         shape = run.add_picture(img_src, width=Mm(210))
 
         if floating:
@@ -141,7 +135,6 @@ class DocxEditor:
             if target in p.text.lower():
                 img_src = self._prepare_image(image_path)
                 run = p.add_run()
-                # Вставляем картинку
                 shape = run.add_picture(img_src, width=Mm(210))
                 self._make_floating(shape, width_mm=210, height_mm=297)
                 return True

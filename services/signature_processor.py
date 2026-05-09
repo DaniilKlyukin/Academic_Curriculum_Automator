@@ -26,12 +26,9 @@ def create_title_regex(title_str):
     """Создает гибкое регулярное выражение для должности (учитывает сокращения)"""
     if not title_str:
         return None
-    # Экранируем спецсимволы
     pattern = re.escape(title_str)
-    # Позволяем слову 'заведующий' сокращаться до 'зав.'
     pattern = pattern.replace(r'заведующий', r'зав(едующий)?\.?')
     pattern = pattern.replace(r'Заведующий', r'[Зз]ав(едующий)?\.?')
-    # Заменяем пробелы на возможность нескольких пробелов/переносов
     pattern = pattern.replace(r'\ ', r'\s+')
     return re.compile(pattern, re.IGNORECASE)
 
@@ -67,7 +64,6 @@ def process_docx_signatures(file_path, old_name, new_name, old_title=None, new_t
 
         def replace_in_paragraph(paragraph, is_cell=False):
             nonlocal is_changed
-            # Проверяем, есть ли в параграфе ФИО или должность
             has_name = name_regex.search(paragraph.text)
             has_title = title_regex.search(paragraph.text) if title_regex else False
 
@@ -75,7 +71,6 @@ def process_docx_signatures(file_path, old_name, new_name, old_title=None, new_t
                 if is_signature_zone(paragraph, is_cell):
                     full_text = paragraph.text
 
-                    # Сначала меняем должность, потом ФИО
                     if has_title and new_title:
                         full_text = title_regex.sub(new_title, full_text)
 
@@ -83,7 +78,6 @@ def process_docx_signatures(file_path, old_name, new_name, old_title=None, new_t
                         full_text = name_regex.sub(new_name, full_text)
 
                     if full_text != paragraph.text:
-                        # Очищаем раны и записываем обновленный текст в первый ран
                         for i in range(len(paragraph.runs)):
                             paragraph.runs[i].text = ""
                         if paragraph.runs:

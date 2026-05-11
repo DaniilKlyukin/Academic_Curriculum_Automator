@@ -28,8 +28,6 @@ def main():
         extractor.extract_annotations(input_dir, output_dir)
         print("\n" + "="*50)
         print(f"ГОТОВО! Результаты в: {output_dir}")
-        if os.path.getsize('annotation_errors.log') > 0:
-            print("В процессе были ошибки. См. annotation_errors.log")
     except Exception as e:
         print(f"\nКритическая ошибка: {e}")
 

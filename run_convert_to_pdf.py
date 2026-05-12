@@ -1,6 +1,6 @@
 import logging
 import os
-from utils.pdf_generator import PDFGenerator
+from services.pdf_generator import PDFGenerator
 
 logging.basicConfig(
     filename='app_errors.log',

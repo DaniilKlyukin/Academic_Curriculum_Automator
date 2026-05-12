@@ -1,6 +1,6 @@
 import logging
 import os
-from utils.structure_exporter import generate_tree
+from services.structure_exporter import generate_tree
 
 logging.basicConfig(
     filename='app_errors.log',

@@ -1,11 +1,11 @@
 import os
 import logging
-from utils.doc_converter import convert_doc_to_docx
-from utils.media_cleaner import WordImageCleanerDocx
+from services.doc_converter import convert_doc_to_docx
+from services.media_cleaner import WordImageCleanerDocx
 from services.approval_processor import process_docx, generate_years
 from services.signature_processor import process_docx_signatures
-from utils.filename_cleaner import FilenameCleaner
-from utils.file_cleaner import FileCleaner
+from services.filename_cleaner import FilenameCleaner
+from services.file_cleaner import FileCleaner
 
 logging.basicConfig(
     filename='app_errors.log',

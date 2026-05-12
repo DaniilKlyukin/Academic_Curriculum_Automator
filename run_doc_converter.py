@@ -1,5 +1,5 @@
 import logging
-from utils.doc_converter import convert_doc_to_docx
+from services.doc_converter import convert_doc_to_docx
 
 logging.basicConfig(
     filename='app_errors.log',

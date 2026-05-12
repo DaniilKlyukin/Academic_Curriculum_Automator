@@ -1,5 +1,5 @@
 import logging
-from utils.filename_cleaner import FilenameCleaner
+from services.filename_cleaner import FilenameCleaner
 
 logging.basicConfig(
     filename='app_errors.log',

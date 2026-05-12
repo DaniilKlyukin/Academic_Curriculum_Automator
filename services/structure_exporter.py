@@ -1,13 +1,21 @@
 import os
 import sys
 import fnmatch
+from typing import Set, List, Any
 
 
-def generate_tree(start_dir, max_depth, max_files_per_dir=10, indent_str="  "):
+def generate_tree(
+        start_dir: str,
+        max_depth: int,
+        max_files_per_dir: int = 10,
+        indent_str: str = "  "
+) -> str:
     """
-    Рекурсивно строит дерево папок и файлов с ограничением количества файлов в одной директории.
+    Рекурсивно строит текстовое представление дерева папок и файлов.
+    Поддерживает фильтрацию системных директорий, скрытых файлов и ограничение глубины обхода.
     """
-    exclude_dirs = {
+
+    exclude_dirs: Set[str] = {
         '$RECYCLE.BIN', 'System Volume Information', '.Spotlight-V100', '.Trashes',
         'RECYCLER', 'lost+found', '.git', '.svn', '.hg', 'node_modules',
         'bower_components', '__pycache__', '.venv', 'venv', 'env', '.env_old',
@@ -18,7 +26,7 @@ def generate_tree(start_dir, max_depth, max_files_per_dir=10, indent_str="  "):
         '.docker', '.vagrant', '.cache', '.pytest_cache', '.mypy_cache',
     }
 
-    exclude_patterns = {
+    exclude_patterns: Set[str] = {
         '.ds_store', 'thumbs.db', 'desktop.ini', 'icon\r', 'package-lock.json',
         'yarn.lock', 'pnpm-lock.yaml', 'composer.lock', 'poetry.lock',
         'gemfile.lock', '.python-version', '.gitignore', '*.o', '*.obj',
@@ -30,20 +38,26 @@ def generate_tree(start_dir, max_depth, max_files_per_dir=10, indent_str="  "):
         '.zsh_history', '.python_history', '.ssh', '.Xauthority', '.wget-hsts', '.lesshst'
     }
 
-    def is_hidden(entry):
+    def is_hidden(entry: os.DirEntry) -> bool:
+        """
+        Проверяет, является ли файл или директория скрытой (поддерживает Linux и Windows).
+        """
         if entry.name.startswith('.'):
             return entry.name != '.env'
         if sys.platform == 'win32':
             try:
                 import ctypes
-                attrs = ctypes.windll.kernel32.GetFileAttributesW(entry.path)
-                return attrs != -1 and (attrs & 2 or attrs & 4)
-            except:
+                attrs: int = ctypes.windll.kernel32.GetFileAttributesW(entry.path)
+                return attrs != -1 and (bool(attrs & 2) or bool(attrs & 4))
+            except Exception:
                 return False
         return False
 
-    def should_exclude(name):
-        name_lower = name.lower()
+    def should_exclude(name: str) -> bool:
+        """
+        Проверяет, попадает ли имя файла/папки в список исключений или паттернов.
+        """
+        name_lower: str = name.lower()
         if name_lower in exclude_dirs:
             return True
         for pattern in exclude_patterns:
@@ -51,20 +65,24 @@ def generate_tree(start_dir, max_depth, max_files_per_dir=10, indent_str="  "):
                 return True
         return False
 
-    output = []
-    start_dir = os.path.abspath(start_dir)
-    root_name = os.path.basename(start_dir) or start_dir
+    output: List[str] = []
+    abs_start_dir: str = os.path.abspath(start_dir)
+    root_name: str = os.path.basename(abs_start_dir) or abs_start_dir
     output.append(f"{root_name}/")
 
-    def walk(current_dir, current_depth):
+    def walk(current_dir: str, current_depth: int) -> None:
+        """
+        Внутренняя рекурсивная функция для обхода дерева директорий.
+        """
         if current_depth >= max_depth:
             return
 
         try:
-            entries = []
-            for entry in os.scandir(current_dir):
-                if not entry.is_symlink() and not is_hidden(entry) and not should_exclude(entry.name):
-                    entries.append(entry)
+            entries: List[os.DirEntry] = []
+            with os.scandir(current_dir) as it:
+                for entry in it:
+                    if not entry.is_symlink() and not is_hidden(entry) and not should_exclude(entry.name):
+                        entries.append(entry)
 
             entries.sort(key=lambda e: (not e.is_dir(), e.name.lower()))
         except PermissionError:
@@ -74,25 +92,25 @@ def generate_tree(start_dir, max_depth, max_files_per_dir=10, indent_str="  "):
             output.append(f"{indent_str * (current_depth + 1)}[Ошибка: {e}]")
             return
 
-        dirs = [e for e in entries if e.is_dir()]
-        files = [e for e in entries if not e.is_dir()]
+        dirs: List[os.DirEntry] = [e for e in entries if e.is_dir()]
+        files: List[os.DirEntry] = [e for e in entries if not e.is_dir()]
 
         for d in dirs:
-            prefix = indent_str * (current_depth + 1)
+            prefix: str = indent_str * (current_depth + 1)
             output.append(f"{prefix}{d.name}/")
             walk(d.path, current_depth + 1)
 
-        num_files = len(files)
-        prefix = indent_str * (current_depth + 1)
+        num_files: int = len(files)
+        prefix_files: str = indent_str * (current_depth + 1)
 
         if num_files > max_files_per_dir:
             for f in files[:max_files_per_dir]:
-                output.append(f"{prefix}{f.name}")
-            remaining = num_files - max_files_per_dir
-            output.append(f"{prefix}... [и еще {remaining} файл(ов)]")
+                output.append(f"{prefix_files}{f.name}")
+            remaining: int = num_files - max_files_per_dir
+            output.append(f"{prefix_files}... [и еще {remaining} файл(ов)]")
         else:
             for f in files:
-                output.append(f"{prefix}{f.name}")
+                output.append(f"{prefix_files}{f.name}")
 
-    walk(start_dir, 0)
+    walk(abs_start_dir, 0)
     return "\n".join(output)

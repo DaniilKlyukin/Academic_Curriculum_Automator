@@ -1,6 +1,6 @@
 import os
 import logging
-from utils.scan_renamer import ScanRenamer
+from services.scan_renamer import ScanRenamer
 
 logging.basicConfig(
     filename='app_errors.log',

@@ -1,14 +1,22 @@
 import re
+from typing import List, Tuple
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Pt
+from docx.table import _Cell
 
 
-def generate_years(start_year: int, end_year: int):
+def generate_years(start_year: int, end_year: int) -> List[str]:
+    """
+    Генерирует список строк учебных годов в формате 'YYYY – YYYY+1'.
+    """
     return [f"{y} – {y + 1}" for y in range(start_year, end_year)]
 
 
-def set_cell_format(cell, text, align_center=False):
+def set_cell_format(cell: _Cell, text: str, align_center: bool = False) -> None:
+    """
+    Устанавливает текст, шрифт и выравнивание для указанной ячейки таблицы.
+    """
     cell.text = ""
     paragraph = cell.paragraphs[0]
     if align_center:
@@ -18,26 +26,29 @@ def set_cell_format(cell, text, align_center=False):
     run.font.size = Pt(14)
 
 
-def process_docx(file_path: str, years_list: list):
+def process_docx(file_path: str, years_list: List[str]) -> Tuple[bool, str]:
+    """
+    Ищет в документе таблицу согласования РПД по ключевым словам и обновляет в ней список годов.
+    """
     try:
         doc = Document(file_path)
-        keywords = ["учебн", "год", "согласов", "рпд", "лист"]
+        keywords: List[str] = ["учебн", "год", "согласов", "рпд", "лист"]
 
         for table in doc.tables:
             if not table.rows:
                 continue
 
-            check_limit = min(len(table.rows), 3)
-            rows_data = []
+            check_limit: int = min(len(table.rows), 3)
+            rows_data: List[str] = []
             for i in range(check_limit):
-                text = " ".join(cell.text for cell in table.rows[i].cells).lower()
+                text: str = " ".join(cell.text for cell in table.rows[i].cells).lower()
                 rows_data.append(re.sub(r'\s+', ' ', text))
 
-            full_header_text = " ".join(rows_data)
-            matches = [kw for kw in keywords if kw in full_header_text]
+            full_header_text: str = " ".join(rows_data)
+            matches: List[str] = [kw for kw in keywords if kw in full_header_text]
 
             if len(matches) >= 2:
-                target_row_index = 0
+                target_row_index: int = 0
                 for idx, text in enumerate(rows_data):
                     if "учебн" in text and "год" in text:
                         target_row_index = idx

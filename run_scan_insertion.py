@@ -1,7 +1,7 @@
 import os
 import logging
-from utils.scan_finder import ScanFinder
-from services.scan_insertion_service import ScanInsertionManager
+from services.scan_finder import ScanFinder
+from services.scan_insertion import ScanInsertionManager
 
 logging.basicConfig(
     filename='app_errors.log',

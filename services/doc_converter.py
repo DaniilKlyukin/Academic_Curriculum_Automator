@@ -1,30 +1,38 @@
 import os
 import win32com.client as win32
 import logging
+from typing import List, Tuple, Any, Optional
 
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
 
-def convert_doc_to_docx(folder_path: str):
+def convert_doc_to_docx(folder_path: str) -> None:
+    """
+    Выполняет рекурсивный поиск файлов .doc в указанной директории и конвертирует их в формат .docx
+    с использованием Microsoft Word через COM-интерфейс. После успешной конвертации исходный файл удаляется.
+    """
     if not os.path.isdir(folder_path):
         print("Папка не существует.")
         return
 
     print("Сканирование папок...")
-    files_to_convert = []
+    files_to_convert: List[Tuple[str, str, str]] = []
 
-    def fast_scan(path):
+    def fast_scan(path: str) -> None:
+        """
+        Рекурсивно сканирует файловую систему для поиска файлов с расширением .doc.
+        """
         try:
             with os.scandir(path) as it:
                 for entry in it:
                     if entry.is_dir():
                         fast_scan(entry.path)
                     elif entry.is_file():
-                        name = entry.name.lower()
+                        name: str = entry.name.lower()
                         if name.endswith('.doc') and not name.endswith('.docx') and not name.startswith('~$'):
-                            doc_path = os.path.abspath(entry.path)
-                            docx_path = doc_path + 'x'
+                            doc_path: str = os.path.abspath(entry.path)
+                            docx_path: str = doc_path + 'x'
                             if not os.path.exists(docx_path):
                                 files_to_convert.append((doc_path, docx_path, entry.name))
         except PermissionError:
@@ -36,10 +44,10 @@ def convert_doc_to_docx(folder_path: str):
         print("Файлов для конвертации не найдено.")
         return
 
-    word = None
-    converted_count = 0
+    word: Optional[Any] = None
+    converted_count: int = 0
+    total: int = len(files_to_convert)
 
-    total = len(files_to_convert)
     print(f"\n{'№':<9} | {'Статус':<8} | {'Файл'}")
     print("-" * 80)
 
@@ -54,10 +62,10 @@ def convert_doc_to_docx(folder_path: str):
         word.Options.BackgroundSave = False
 
         for i, (doc_path, docx_path, filename) in enumerate(files_to_convert, 1):
-            status = "OK"
+            status: str = "OK"
 
             try:
-                doc = word.Documents.Open(doc_path, AddToRecentFiles=False, ReadOnly=True, Visible=False)
+                doc: Any = word.Documents.Open(doc_path, AddToRecentFiles=False, ReadOnly=True, Visible=False)
                 doc.SaveAs2(docx_path, FileFormat=16)
                 doc.Close(0)
                 os.remove(doc_path)
@@ -72,6 +80,9 @@ def convert_doc_to_docx(folder_path: str):
         logger.error(f"Критическая ошибка: {e}")
     finally:
         if word:
-            word.ScreenUpdating = True
-            word.Quit()
+            try:
+                word.ScreenUpdating = True
+                word.Quit()
+            except:
+                pass
         print(f"\nГотово! Обработано файлов: {converted_count}")

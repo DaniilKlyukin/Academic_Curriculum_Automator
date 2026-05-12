@@ -1,5 +1,5 @@
 import logging
-from utils.media_cleaner import WordImageCleanerDocx
+from services.media_cleaner import WordImageCleanerDocx
 
 logging.basicConfig(
     filename='app_errors.log',

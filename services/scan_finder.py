@@ -9,7 +9,7 @@ from rapidfuzz import fuzz, process
 class ScanFinder:
     def __init__(self, scans_dir: Union[str, Path], threshold: float = 70.0) -> None:
         """
-        threshold теперь от 0 до 100 (специфика RapidFuzz).
+        threshold от 0 до 100.
         70-80 — оптимально для опечаток.
         """
         self.scans_dir: Union[str, Path] = scans_dir

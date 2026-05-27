@@ -94,3 +94,30 @@ class AnnotationExtractor:
                     logger.error(f"Непредвиденная ошибка при обработке {file_name}: {e}")
 
                 print(f"[{i:03}/{total:03}] | {status:<8} | {file_name[:60]}")
+
+
+def main():
+    print("\n" + "="*50)
+    print("=== ИЗВЛЕЧЕНИЕ АННОТАЦИЙ (СТРАНИЦА 3) ===")
+    print("="*50)
+
+    input_dir = input("Путь к папке с РП (.docx): ").strip().strip('"')
+    output_dir = input("Куда сохранять PDF-аннотации: ").strip().strip('"')
+
+    if not os.path.isdir(input_dir):
+        print(f"Ошибка: Путь не найден: {input_dir}")
+        return
+
+    extractor = AnnotationExtractor(annotation_page=3)
+
+    try:
+        extractor.extract_annotations(input_dir, output_dir)
+        print("\n" + "="*50)
+        print(f"ГОТОВО! Результаты в: {output_dir}")
+    except Exception as e:
+        print(f"\nКритическая ошибка: {e}")
+
+    input("\nНажмите Enter, чтобы выйти...")
+
+if __name__ == "__main__":
+    main()

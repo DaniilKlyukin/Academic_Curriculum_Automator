@@ -3,7 +3,7 @@ import win32com.client as win32
 import logging
 from typing import List, Tuple, Any, Optional
 
-logging.basicConfig(level=logging.ERROR)
+
 logger = logging.getLogger(__name__)
 
 
@@ -86,3 +86,14 @@ def convert_doc_to_docx(folder_path: str) -> None:
             except:
                 pass
         print(f"\nГотово! Обработано файлов: {converted_count}")
+
+
+def main():
+    folder_path = input("Путь к папке с .doc: ").strip().strip('"')
+    if not folder_path:
+        return
+    convert_doc_to_docx(folder_path)
+
+
+if __name__ == "__main__":
+    main()

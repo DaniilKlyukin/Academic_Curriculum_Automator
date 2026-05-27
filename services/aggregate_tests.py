@@ -1,21 +1,19 @@
-import os
 import re
 import copy
 import io
 import logging
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional, Any
-
 import openpyxl
 from docx import Document
 from docx.text.paragraph import Paragraph
 from docx.table import Table
 from docx.shared import Pt
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
 logger = logging.getLogger(__name__)
 
-# Регулярное выражение для поиска кодов компетенций (кириллица и латиница)
+
 COMP_PATTERN = re.compile(
     r"\b(УК|ОПК|ПК|UK|OPK|PK|YK|OK|Yk|Pk|Opk|Uk)\s*[-–—\.\s]*(\d+)\b",
     re.IGNORECASE

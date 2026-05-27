@@ -1,12 +1,11 @@
-import os
 import re
 import logging
 from pathlib import Path
 from typing import List, Dict, Set, Tuple, Optional, Union, Any
-
 from openpyxl import load_workbook
 from openpyxl.worksheet.worksheet import Worksheet
 from docx import Document
+
 
 logger = logging.getLogger(__name__)
 
@@ -367,17 +366,14 @@ class CompetencyReportGenerator:
             logger.error(f"Не удалось сохранить итоговый документ Word: {e}")
 
 
-if __name__ == "__main__":
-    # Настройка логирования по умолчанию
+def main():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
     print("=== Панель управления генерацией отчетов ===")
 
-    # Интерактивный ввод путей
     user_excel_path: str = input("Шаг 1. Введите путь к исходному файлу Excel (например, plan.xlsx): ").strip()
     user_word_path: str = input("Шаг 2. Введите путь для сохранения файла Word (например, result.docx): ").strip()
 
-    # Использование значений по умолчанию при пустом вводе
     if not user_excel_path:
         user_excel_path = "plan.xlsx"
         print(f"Используется путь по умолчанию для Excel: {user_excel_path}")
@@ -392,3 +388,7 @@ if __name__ == "__main__":
         word_path=user_word_path
     )
     generator.generate()
+
+
+if __name__ == "__main__":
+    main()

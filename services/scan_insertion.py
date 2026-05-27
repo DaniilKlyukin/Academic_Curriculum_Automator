@@ -1,8 +1,10 @@
 import logging
+import os
 from pathlib import Path
 from typing import List, Union, Tuple
 from core.docx_editor import DocxEditor
 from services.scan_finder import ScanFinder
+
 
 logger = logging.getLogger(__name__)
 
@@ -48,3 +50,40 @@ class ScanInsertionManager:
                     logger.error(f"Ошибка при обработке {file_name}: {e}")
 
             print(f"[{i:0>3}/{total:0>3}] | {status:<8} | {score:<5} | {file_name[:50]}")
+
+
+def main():
+    print("=== АВТОМАТИЧЕСКАЯ ВСТАВКА СКАНОВ ===")
+
+    doc_dir = input("Папка с Word (.docx): ").strip().strip('"')
+    img_dir = input("Папка со сканами (.jpg): ").strip().strip('"')
+
+    if not os.path.isdir(doc_dir) or not os.path.isdir(img_dir):
+        print("Ошибка: Путь не существует.")
+        return
+
+    finder = ScanFinder(img_dir)
+    manager = ScanInsertionManager(finder)
+
+    files = [
+        os.path.join(doc_dir, f) for f in os.listdir(doc_dir)
+        if f.lower().endswith('.docx') and not f.startswith('~$')
+    ]
+
+    if not files:
+        print("В папке нет файлов .docx")
+        return
+
+    print(f"\nНайдено документов: {len(files)}")
+    print("Начинаю работу...")
+
+    manager.process_documents(files)
+
+    print("\n" + "=" * 30)
+    print("ГОТОВО!")
+    print("Если были ошибки, проверьте файл insertion_log.log")
+    input("Нажмите Enter для выхода...")
+
+
+if __name__ == "__main__":
+    main()

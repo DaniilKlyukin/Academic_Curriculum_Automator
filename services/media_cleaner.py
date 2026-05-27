@@ -9,8 +9,6 @@ from typing import List, Set, Any, Union, Optional
 from docx import Document
 from docx.oxml.ns import qn, nsmap
 from docx.document import Document as DocumentType
-from docx.table import _Cell
-from docx.section import _Header, _Footer
 
 if 'v' not in nsmap:
     nsmap['v'] = 'urn:schemas-microsoft-com:vml'
@@ -170,3 +168,17 @@ class WordImageCleanerDocx:
                         new_zip.write(file, file.relative_to(temp_dir))
         finally:
             shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+def main():
+    print("=== Очистка DOCX от тяжелых медиа-объектов ===")
+    path = input("Введите путь к папке с .docx: ").strip().strip('"')
+
+    cleaner = WordImageCleanerDocx(path)
+    print("Анализ и очистка файлов (это может занять время)...")
+    cleaner.process_all()
+    print("\n[Готово] Вес файлов оптимизирован.")
+
+
+if __name__ == "__main__":
+    main()

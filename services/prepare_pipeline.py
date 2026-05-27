@@ -1,5 +1,4 @@
 import os
-import logging
 from services.doc_converter import convert_doc_to_docx
 from services.media_cleaner import WordImageCleanerDocx
 from services.approval_processor import process_docx, generate_years
@@ -7,13 +6,6 @@ from services.signature_processor import process_docx_signatures
 from services.filename_cleaner import FilenameCleaner
 from services.file_cleaner import FileCleaner
 
-logging.basicConfig(
-    filename='app_errors.log',
-    filemode='w',
-    level=logging.ERROR,
-    format="%(asctime)s | %(levelname)s | %(message)s",
-    encoding='utf-8'
-)
 
 def main():
     folder_path = input("Введите путь к папке: ").strip().strip('"')

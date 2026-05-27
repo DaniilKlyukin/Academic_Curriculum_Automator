@@ -56,3 +56,17 @@ class FilenameCleaner:
 
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             executor.map(self._process_file, files)
+
+
+def main():
+    print("=== Массовая очистка имен файлов ===")
+    path = input("Введите путь к папке: ").strip().strip('"')
+
+    cleaner = FilenameCleaner(path)
+    print("Начинаю переименование...")
+    cleaner.run()
+    print("\n[Готово] Имена файлов приведены в порядок.")
+
+
+if __name__ == "__main__":
+    main()

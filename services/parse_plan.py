@@ -137,7 +137,7 @@ class CompetencyReportGenerator:
 
     def _parse_competencies(self, sheet: Worksheet) -> List[Dict[str, Any]]:
         """
-        Парсит иерархическую структуру компетенций, сканируя три разные колонки структуры.
+        Парсит структуру компетенций, динамически определяя смещение структуры (для ПК).
         """
         competencies: List[Dict[str, Any]] = []
         current_comp: Optional[Dict[str, Any]] = None
@@ -145,46 +145,82 @@ class CompetencyReportGenerator:
         txt_col = self._find_competency_text_column(sheet)
         logger.info(f"Определен столбец Содержания компетенций -> {txt_col}")
 
-        comp_pattern = re.compile(r"^([A-Za-zА-Яа-я]+)-\d+$")
-        indicator_pattern = re.compile(r"^([A-Za-zА-Яа-я]+)-\d+\.\d+$")
+        # Помехоустойчивые паттерны к разным типам тире/дефисов и пробелов
+        comp_pattern = re.compile(r"^([A-Za-zА-Яа-я]+)\s*[-–—]\s*\d+$")
+        indicator_pattern = re.compile(r"^([A-Za-zА-Яа-я]+)\s*[-–—]\s*\d+\.\d+$")
+        item_pattern = re.compile(r"^(Б\d|ФТД)")
 
         print("\n" + "=" * 50)
-        print("ДЕТАЛЬНЫЙ ЛОГ ИМПОРТА ИЗЛИСТА 'КОМПЕТЕНЦИИ':")
+        print("ДЕТАЛЬНЫЙ ЛОГ ИМПОРТА ИЗЛИСТА 'КОМПЕТЕНЦИИ' (АДАПТИВНЫЙ ПАРСЕР):")
         print("=" * 50)
 
-        for row in range(1, sheet.max_row + 1):
-            # Извлекаем значения из трех потенциальных колонок иерархии индексов
+        # Вычисляем глубину сканирования с запасом
+        max_scan_rows: int = max(sheet.max_row, 1000)
+        consecutive_empty_rows: int = 0
+
+        for row in range(1, max_scan_rows + 1):
+            # Считываем 4 колонки из-за возможного смещения ПК вправо
             val_col1: str = str(sheet.cell(row=row, column=1).value or "").strip()
             val_col2: str = str(sheet.cell(row=row, column=2).value or "").strip()
             val_col3: str = str(sheet.cell(row=row, column=3).value or "").strip()
+            val_col4: str = str(sheet.cell(row=row, column=4).value or "").strip()
             text_val: str = str(sheet.cell(row=row, column=txt_col).value or "").strip()
 
-            # Сценарий 1: Компетенция находится в первой колонке (A)
+            # Предотвращение преждевременного завершения
+            if not val_col1 and not val_col2 and not val_col3 and not val_col4:
+                consecutive_empty_rows += 1
+                if consecutive_empty_rows > 50:  # Прекращаем парсинг после 50 пустых строк подряд
+                    break
+                continue
+
+            consecutive_empty_rows = 0  # Сбрасываем счетчик, если строка не пуста
+
+            # 1. Поиск КОМПЕТЕНЦИИ (может быть в колонке 1 или 2)
+            comp_code: Optional[str] = None
             if val_col1 and comp_pattern.match(val_col1):
+                comp_code = val_col1
+            elif val_col2 and comp_pattern.match(val_col2):
+                comp_code = val_col2
+
+            if comp_code:
                 current_comp = {
-                    "comp_code": val_col1,
+                    "comp_code": comp_code,
                     "comp_name": text_val,
                     "indicators": [],
                     "mapped_codes": set()
                 }
                 competencies.append(current_comp)
-                print(f"Строка {row:03} | [Компетенция] {val_col1} -> {text_val[:50]}...")
+                print(f"Строка {row:03} | [Компетенция] {comp_code} -> {text_val[:50]}...")
+                continue
 
-            # Сценарий 2: Индикатор находится во второй колонке (B)
-            elif val_col2 and indicator_pattern.match(val_col2):
-                if current_comp:
-                    current_comp["indicators"].append(f"{val_col2} {text_val}")
-                    print(f"Строка {row:03} |   [Индикатор]   {val_col2} -> {text_val[:50]}...")
-                else:
-                    print(f"Строка {row:03} |   [ВНИМАНИЕ] Пропущен индикатор без компетенции: {val_col2}")
+            # 2. Поиск ИНДИКАТОРА (может быть в колонке 2 или 3)
+            indicator_code: Optional[str] = None
+            if val_col2 and indicator_pattern.match(val_col2):
+                indicator_code = val_col2
+            elif val_col3 and indicator_pattern.match(val_col3):
+                indicator_code = val_col3
 
-            # Сценарий 3: Дисциплина/Практика находится в третьей колонке (C)
-            elif val_col3 and re.match(r"^(Б\d|ФТД)", val_col3):
+            if indicator_code:
                 if current_comp:
-                    current_comp["mapped_codes"].add(val_col3)
-                    print(f"Строка {row:03} |     [Привязка]    {val_col3} -> {text_val[:50]}...")
+                    current_comp["indicators"].append(f"{indicator_code} {text_val}")
+                    print(f"Строка {row:03} |   [Индикатор]   {indicator_code} -> {text_val[:50]}...")
                 else:
-                    print(f"Строка {row:03} |     [ВНИМАНИЕ] Пропущена дисциплина без компетенции: {val_col3}")
+                    print(f"Строка {row:03} |   [ВНИМАНИЕ] Пропущен индикатор без компетенции: {indicator_code}")
+                continue
+
+            # 3. Поиск ДИСЦИПЛИНЫ/ПРАКТИКИ (может быть в колонке 3 или 4)
+            item_code: Optional[str] = None
+            if val_col3 and item_pattern.match(val_col3):
+                item_code = val_col3
+            elif val_col4 and item_pattern.match(val_col4):
+                item_code = val_col4
+
+            if item_code:
+                if current_comp:
+                    current_comp["mapped_codes"].add(item_code)
+                    print(f"Строка {row:03} |     [Привязка]    {item_code} -> {text_val[:50]}...")
+                else:
+                    print(f"Строка {row:03} |     [ВНИМАНИЕ] Пропущена дисциплина без компетенции: {item_code}")
 
         print("=" * 50 + "\n")
         return competencies

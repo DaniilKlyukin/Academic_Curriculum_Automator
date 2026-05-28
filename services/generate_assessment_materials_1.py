@@ -5,7 +5,10 @@ from typing import List, Dict, Set, Tuple, Optional, Union, Any
 from openpyxl import load_workbook
 from openpyxl.worksheet.worksheet import Worksheet
 from docx import Document
-
+from docx.shared import Pt, Inches, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 
 logger = logging.getLogger(__name__)
 
@@ -22,12 +25,132 @@ class ExcelConfig:
     PLAN_NAME_COL: int = 3
 
 
+def set_font(run, font_name="Times New Roman", size_pt=12, bold=False, italic=False, color_rgb=(0, 0, 0)):
+    """Устанавливает шрифт, размер, цвет и начертание для текстового прогона (run),
+
+    обеспечивая поддержку кириллицы в MS Word.
+    """
+    run.font.name = font_name
+    run.font.size = Pt(size_pt)
+    run.bold = bold
+    run.italic = italic
+    run.font.color.rgb = RGBColor(*color_rgb)
+
+    try:
+        rPr = run._r.get_or_add_rPr()
+        rFonts = OxmlElement('w:rFonts')
+        rFonts.set(qn('w:ascii'), font_name)
+        rFonts.set(qn('w:hAnsi'), font_name)
+        rFonts.set(qn('w:cs'), font_name)
+        rFonts.set(qn('w:eastAsia'), font_name)
+        rPr.append(rFonts)
+    except Exception as e:
+        logger.debug(f"Не удалось применить XML-стили шрифтов: {e}")
+
+
+def resolve_style_names(doc: Document):
+    """Определяет доступные системные имена стилей в открытом документе."""
+    existing_styles = {s.name for s in doc.styles}
+
+    style_h1 = "Heading 1"
+    for name in ["Заголовок 1", "Heading 1", "Heading1"]:
+        if name in existing_styles:
+            style_h1 = name
+            break
+
+    style_h2 = "Heading 2"
+    for name in ["Заголовок 2", "Heading 2", "Heading2"]:
+        if name in existing_styles:
+            style_h2 = name
+            break
+
+    style_normal = "Normal"
+    for name in ["Обычный", "Normal"]:
+        if name in existing_styles:
+            style_normal = name
+            break
+
+    return style_h1, style_h2, style_normal
+
+
+def configure_document_styles(doc: Document):
+    """Программно настраивает глобальные стили документа согласно заданным параметрам."""
+    style_h1, style_h2, style_normal = resolve_style_names(doc)
+    black_color = (0, 0, 0)
+
+    def setup_style(style_obj, font_name="Times New Roman", size_pt=14, bold=False, italic=False, color_rgb=black_color,
+                    align=None):
+        font = style_obj.font
+        font.name = font_name
+        font.size = Pt(size_pt)
+        font.bold = bold
+        font.italic = italic
+        font.color.rgb = RGBColor(*color_rgb)
+
+        # Настройка абзацных интервалов и выравнивания
+        pf = style_obj.paragraph_format
+        pf.space_before = Pt(0)
+        pf.space_after = Pt(0)
+        pf.line_spacing = 1.0
+        if align is not None:
+            pf.alignment = align
+
+    # Настройка стиля «Обычный» (Обычный текст по ширине)
+    if style_normal in doc.styles:
+        setup_style(doc.styles[style_normal], size_pt=14, bold=False, italic=False, align=WD_ALIGN_PARAGRAPH.JUSTIFY)
+
+    # Настройка стиля «Заголовок 1» (По центру, Жирный)
+    if style_h1 in doc.styles:
+        setup_style(doc.styles[style_h1], size_pt=14, bold=True, italic=False, align=WD_ALIGN_PARAGRAPH.CENTER)
+
+    # Настройка стиля «Заголовок 2» (По ширине, Курсив)
+    if style_h2 in doc.styles:
+        setup_style(doc.styles[style_h2], size_pt=14, bold=False, italic=True, align=WD_ALIGN_PARAGRAPH.JUSTIFY)
+
+
+def set_repeat_table_header(row):
+    """Включает повторение строки таблицы на каждой новой странице (tblHeader)."""
+    trPr = row._tr.get_or_add_trPr()
+    tblHeader = OxmlElement('w:tblHeader')
+    trPr.append(tblHeader)
+
+
+def set_row_cant_split(row):
+    """Запрещает разрыв строки таблицы при переходе на новую страницу (cantSplit)."""
+    trPr = row._tr.get_or_add_trPr()
+    cantSplit = OxmlElement('w:cantSplit')
+    trPr.append(cantSplit)
+
+
+def set_cell_text(cell, text: str, style_name="Normal", bold=False, italic=False, size_pt=12,
+                  align=WD_ALIGN_PARAGRAPH.LEFT, keep_with_next=False):
+    """Записывает текст в ячейку таблицы с очисткой и применением форматирования."""
+    cell.text = ""  # Сброс стандартного содержимого ячейки
+    p = cell.paragraphs[0]
+    try:
+        p.style = style_name
+    except Exception:
+        pass
+
+    p.alignment = align
+    p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.space_after = Pt(0)
+    p.paragraph_format.line_spacing = 1.0
+
+    if keep_with_next:
+        p.paragraph_format.keep_with_next = True
+
+    if text:
+        run = p.add_run(text)
+        set_font(run, size_pt=size_pt, bold=bold, italic=italic)
+
+
 class CompetencyReportGenerator:
     """Класс для сопоставления компетенций и дисциплин из учебного плана в документ Word."""
 
-    def __init__(self, excel_path: Union[str, Path], word_path: Union[str, Path]) -> None:
+    def __init__(self, excel_path: Union[str, Path], word_folder_path: Union[str, Path]) -> None:
         self.excel_path: Path = Path(excel_path)
-        self.word_path: Path = Path(word_path)
+        self.word_folder_path: Path = Path(word_folder_path)
 
     def _find_semester_columns(self, sheet: Worksheet) -> Dict[int, int]:
         """
@@ -281,35 +404,70 @@ class CompetencyReportGenerator:
         # Инициализация Word
         doc = Document()
 
+        # Настройка и глобальное переопределение параметров стилей
+        configure_document_styles(doc)
+        style_h1, style_h2, style_normal = resolve_style_names(doc)
+
         # Настройка альбомной ориентации для широкой таблицы
         section = doc.sections[-1]
         new_width, new_height = section.page_height, section.page_width
         section.page_width = new_width
         section.page_height = new_height
 
+        # 1. Добавление Раздела 1 перед таблицей (Стиль "Заголовок 1")
+        p_header = doc.add_paragraph()
+        try:
+            p_header.style = style_h1
+        except Exception:
+            pass
+
+        p_header.paragraph_format.space_before = Pt(12)
+        p_header.paragraph_format.space_after = Pt(18)
+        p_header.paragraph_format.keep_with_next = True  # Привязываем заголовок к таблице
+
+        run_header = p_header.add_run(
+            "Раздел 1. Матрица соответствия между компетенциями и дисциплинами и практиками их формирующими"
+        )
+        set_font(run_header, font_name="Times New Roman", size_pt=14, bold=True, italic=False)
+
+        # 2. Создание таблицы
         table = doc.add_table(rows=1, cols=5)
         table.style = "Table Grid"
 
-        # Заголовки таблицы Word
-        hdr_cells = table.rows[0].cells
-        hdr_cells[0].text = "Код и наименование компетенции"
-        hdr_cells[1].text = "Код и наименование индикатора достижения компетенции"
-        hdr_cells[2].text = "Дисциплины (модули)"
-        hdr_cells[3].text = "Практики"
-        hdr_cells[4].text = "Семестр формирования"
+        # Настройка шапки таблицы (дублирование на каждой странице + запрет разрывов)
+        hdr_row = table.rows[0]
+        set_repeat_table_header(hdr_row)
+        set_row_cant_split(hdr_row)
 
+        headers_text = [
+            "Код и наименование компетенции",
+            "Код и наименование индикатора достижения компетенции",
+            "Дисциплины (модули)",
+            "Практики",
+            "Семестр формирования"
+        ]
+
+        hdr_cells = hdr_row.cells
+        for idx, text in enumerate(headers_text):
+            set_cell_text(
+                hdr_cells[idx],
+                text,
+                style_name=style_normal,
+                bold=True,
+                italic=True,
+                size_pt=12,
+                align=WD_ALIGN_PARAGRAPH.CENTER,
+                keep_with_next=True  # Привязываем шапку к первой строке контента
+            )
+
+        # Заполнение строк таблицы данными
         for i, comp in enumerate(competencies, 1):
             comp_code: str = comp["comp_code"]
             status: str = "OK"
 
             try:
-                row_cells = table.add_row().cells
-
-                # 1. Запись компетенции
-                row_cells[0].text = f"{comp_code} {comp['comp_name']}"
-
-                # 2. Запись индикаторов
-                row_cells[1].text = "\n".join(comp["indicators"])
+                new_row = table.add_row()
+                row_cells = new_row.cells
 
                 # Использование списков с последующим исключением дубликатов по названию предмета
                 disciplines_names: List[str] = []
@@ -336,20 +494,30 @@ class CompetencyReportGenerator:
                             practices_names.append(name)
                         prac_semesters.update(sems)
 
-                # 3. Дисциплины (упорядоченно и без повторов)
-                row_cells[2].text = "\n".join(sorted(disciplines_names))
+                # Подготовка текстов для ячеек
+                comp_text = f"{comp_code} {comp['comp_name']}"
+                indicators_text = "\n".join(comp["indicators"])
+                disc_text = "\n".join(sorted(disciplines_names))
+                prac_text = "\n".join(sorted(practices_names))
 
-                # 4. Практики (упорядоченно и без повторов)
-                row_cells[3].text = "\n".join(sorted(practices_names))
-
-                # 5. Семестры
                 sem_info: List[str] = []
                 if disc_semesters:
                     sem_info.append(f"Дисциплины — {self._format_semesters(list(disc_semesters))}")
                 if prac_semesters:
                     sem_info.append(f"Практики — {self._format_semesters(list(prac_semesters))}")
+                sem_text = "\n".join(sem_info)
 
-                row_cells[4].text = "\n".join(sem_info)
+                # Запись данных в ячейки с применением стиля "Обычный" (Normal) и переопределением на 12pt для компактности
+                set_cell_text(row_cells[0], comp_text, style_name=style_normal, size_pt=12,
+                              align=WD_ALIGN_PARAGRAPH.LEFT)
+                set_cell_text(row_cells[1], indicators_text, style_name=style_normal, size_pt=12,
+                              align=WD_ALIGN_PARAGRAPH.LEFT)
+                set_cell_text(row_cells[2], disc_text, style_name=style_normal, size_pt=12,
+                              align=WD_ALIGN_PARAGRAPH.LEFT)
+                set_cell_text(row_cells[3], prac_text, style_name=style_normal, size_pt=12,
+                              align=WD_ALIGN_PARAGRAPH.LEFT)
+                set_cell_text(row_cells[4], sem_text, style_name=style_normal, size_pt=12,
+                              align=WD_ALIGN_PARAGRAPH.LEFT)
 
             except Exception as e:
                 status = "ERR"
@@ -359,33 +527,38 @@ class CompetencyReportGenerator:
             print(f"[{i:03}/{total:03}] | {status:<8} | {comp_code:<8} | {comp_desc}...")
 
         try:
-            self.word_path.parent.mkdir(parents=True, exist_ok=True)
-            doc.save(str(self.word_path.absolute()))
-            print(f"\nПроцесс завершен. Таблица успешно сохранена в: {self.word_path.name}")
+            # Создаем папку, если она не существует
+            self.word_folder_path.mkdir(parents=True, exist_ok=True)
+
+            # Конструируем итоговый путь к файлу
+            final_docx_path = self.word_folder_path / "ИИ Оценочные материалы.docx"
+
+            doc.save(str(final_docx_path.absolute()))
+            print(
+                f"\nПроцесс завершен. Таблица успешно сохранена в файл:\n'{final_docx_path.name}'\nПо адресу: {final_docx_path.parent}")
         except Exception as e:
             logger.error(f"Не удалось сохранить итоговый документ Word: {e}")
 
 
 def main():
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
     print("=== Панель управления генерацией отчетов ===")
 
     user_excel_path: str = input("Шаг 1. Введите путь к исходному файлу Excel (например, plan.xlsx): ").strip()
-    user_word_path: str = input("Шаг 2. Введите путь для сохранения файла Word (например, result.docx): ").strip()
+    user_folder_path: str = input(
+        "Шаг 2. Введите путь к папке для сохранения документа Word (например, C:\\Reports): ").strip()
 
     if not user_excel_path:
         user_excel_path = "plan.xlsx"
         print(f"Используется путь по умолчанию для Excel: {user_excel_path}")
 
-    if not user_word_path:
-        user_word_path = "competencies_table.docx"
-        print(f"Используется путь по умолчанию для Word: {user_word_path}")
+    if not user_folder_path:
+        user_folder_path = "."
+        print(f"Используется текущая рабочая папка по умолчанию: {Path(user_folder_path).absolute()}")
 
     print("\nЗапуск процесса генерации...")
     generator = CompetencyReportGenerator(
         excel_path=user_excel_path,
-        word_path=user_word_path
+        word_folder_path=user_folder_path
     )
     generator.generate()
 

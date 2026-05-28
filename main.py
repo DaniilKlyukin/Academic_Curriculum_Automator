@@ -13,8 +13,8 @@ from services.scan_insertion import main as run_scan_insertion
 from services.scan_renamer import main as run_scan_renamer
 from services.signature_processor import main as run_signature_update
 from services.structure_exporter import main as run_structure_exporter
-from services.parse_plan import main as run_parse_plan
-from services.aggregate_tests import main as run_aggregate_tests
+from services.generate_assessment_materials_1 import main as generate_assessment_materials_1
+from services.generate_assessment_materials_2 import main as generate_assessment_materials_2
 
 logging.basicConfig(
     filename='app_errors.log',
@@ -50,8 +50,8 @@ def main() -> None:
         "10": ("Умное переименование сканов", run_scan_renamer),
         "11": ("Замена ФИО и должности в зонах подписей", run_signature_update),
         "12": ("Генератор структуры папок для ИИ", run_structure_exporter),
-        "13": ("Анализ плана и генерация таблицы компетенций", run_parse_plan),
-        "14": ("Агрегация оценочных материалов (тестов) из РП", run_aggregate_tests),
+        "13": ("Анализ плана и генерация таблицы компетенций", generate_assessment_materials_1),
+        "14": ("Анализ таблицы компетенций и создание шаблона раздела 2", generate_assessment_materials_2),
     }
 
     while True:

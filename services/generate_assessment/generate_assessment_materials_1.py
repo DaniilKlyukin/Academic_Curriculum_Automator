@@ -5,8 +5,10 @@ from typing import List, Dict, Set, Tuple, Optional, Union, Any
 from openpyxl import load_workbook
 from openpyxl.worksheet.worksheet import Worksheet
 from docx import Document
-from docx.shared import Pt, Inches, RGBColor
+from docx.shared import Pt, Inches, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.section import WD_ORIENT
+from docx.enum.style import WD_STYLE_TYPE
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
@@ -23,6 +25,204 @@ class ExcelConfig:
 
     PLAN_IDX_COL: int = 2
     PLAN_NAME_COL: int = 3
+
+
+def _parse_title_info(wb) -> Dict[str, str]:
+    """Интеллектуальный поиск метаданных на листе 'Титул'."""
+    info = {
+        "code": "",
+        "direction": "",
+        "profile": "",
+        "qualification": "",
+        "form": "",
+        "year": ""
+    }
+    if "Титул" not in wb.sheetnames:
+        return info
+
+    sheet = wb["Титул"]
+    for r in range(1, min(sheet.max_row + 1, 100)):
+        for c in range(1, min(sheet.max_column + 1, 20)):
+            cell_val = sheet.cell(row=r, column=c).value
+            if cell_val is None:
+                continue
+            val = clean_cell_value(cell_val)
+            if not val:
+                continue
+
+            # 1. Поиск кода и названия направления (01.03.04 и т.д.)
+            if re.match(r"^\d{2}\.\d{2}\.\d{2}$", val):
+                info["code"] = val
+                for offset in range(1, 4):
+                    potential_dir = clean_cell_value(sheet.cell(row=r + offset, column=c).value)
+                    if potential_dir and not potential_dir.lower().startswith(("профиль", "кафедра")):
+                        info["direction"] = potential_dir
+                        break
+
+            # 2. Поиск профиля
+            if val.lower().startswith("профиль:"):
+                parts = val.split(":", 1)
+                if len(parts) > 1 and parts[1].strip():
+                    info["profile"] = parts[1].strip()
+                else:
+                    next_val = sheet.cell(row=r, column=c + 1).value
+                    if next_val:
+                        info["profile"] = str(next_val).strip()
+            elif val.lower() == "профиль":
+                next_val = sheet.cell(row=r, column=c + 1).value
+                if next_val:
+                    info["profile"] = str(next_val).strip()
+
+            # 3. Поиск квалификации
+            if val.lower().startswith("квалификация:"):
+                parts = val.split(":", 1)
+                if len(parts) > 1 and parts[1].strip():
+                    info["qualification"] = parts[1].strip()
+            elif val.lower().startswith("квалификация"):
+                next_val = sheet.cell(row=r, column=c + 1).value
+                if next_val:
+                    info["qualification"] = str(next_val).strip()
+
+            # 4. Поиск формы обучения
+            if val.lower().startswith("форма обучения:"):
+                parts = val.split(":", 1)
+                if len(parts) > 1 and parts[1].strip():
+                    info["form"] = parts[1].strip()
+            elif val.lower().startswith("форма обучения"):
+                next_val = sheet.cell(row=r, column=c + 1).value
+                if next_val:
+                    info["form"] = str(next_val).strip()
+
+            # 5. Поиск года начала подготовки
+            if val.lower().startswith("год начала подготовки"):
+                for col_offset in range(1, 10):
+                    temp_val = str(sheet.cell(row=r, column=c + col_offset).value or "").strip()
+                    if temp_val.isdigit() and len(temp_val) == 4:
+                        info["year"] = temp_val
+                        break
+    return info
+
+
+def generate_title_page(doc: Document, info: Dict[str, str], style_normal: str):
+    """Генерирует титульный лист в портретной ориентации."""
+    # Приложение
+    p_app = doc.add_paragraph()
+    try:
+        p_app.style = style_normal
+    except Exception:
+        pass
+    p_app.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    run_app = p_app.add_run("Приложение")
+    set_font(run_app, size_pt=14, bold=True)
+
+    for _ in range(4):
+        doc.add_paragraph()
+
+    # Вспомогательная функция для добавления подчеркнутых полей
+    def add_field(label: str, value: str, subtext: str = ""):
+        p_lbl = doc.add_paragraph()
+        try:
+            p_lbl.style = style_normal
+        except Exception:
+            pass
+        p_lbl.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run_lbl = p_lbl.add_run(label)
+        set_font(run_lbl, size_pt=14, bold=True)
+
+        p_val = doc.add_paragraph()
+        try:
+            p_val.style = style_normal
+        except Exception:
+            pass
+        p_val.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run_val = p_val.add_run(value if value else "__________________________________________________")
+        set_font(run_val, size_pt=14, bold=False)
+        run_val.underline = True
+
+        if subtext:
+            p_sub = doc.add_paragraph()
+            try:
+                p_sub.style = style_normal
+            except Exception:
+                pass
+            p_sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p_sub.paragraph_format.space_before = Pt(2)
+            run_sub = p_sub.add_run(subtext)
+            set_font(run_sub, size_pt=9, bold=False)
+
+        doc.add_paragraph()
+
+    # Заголовок
+    p_title = doc.add_paragraph()
+    try:
+        p_title.style = style_normal
+    except Exception:
+        pass
+    p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_title.paragraph_format.space_after = Pt(12)
+    run_title = p_title.add_run("Оценочные материалы образовательной программы\nвысшего образования")
+    set_font(run_title, size_pt=14, bold=True)
+    doc.add_paragraph()
+
+    # Определение уровня образования по квалификации
+    qual = info.get("qualification", "").lower()
+    level_of_edu = "Бакалавриат"
+    if "магистр" in qual:
+        level_of_edu = "Магистратура"
+    elif "специал" in qual:
+        level_of_edu = "Специалитет"
+
+    add_field("Уровень высшего образования", level_of_edu)
+
+    dir_text = ""
+    if info.get("code") or info.get("direction"):
+        dir_text = f"{info.get('code', '')} {info.get('direction', '')}".strip()
+    add_field("Направление подготовки (специальность)", dir_text,
+              "код и наименование направления подготовки (специальности)")
+
+    add_field("Направленность (профиль/программа/специализация)", info.get("profile", ""),
+              "наименование направленности (профиля) подготовки (специализации)")
+    add_field("Квалификация", info.get("qualification", ""))
+    add_field("Форма обучения", info.get("form", ""), "очная, очно-заочная, заочная")
+    add_field("Год приема", info.get("year", ""))
+
+
+def generate_toc_page(doc: Document, style_normal: str):
+    """Генерирует страницу содержания с динамическим полем оглавления MS Word."""
+    p_title = doc.add_paragraph()
+    try:
+        p_title.style = style_normal
+    except Exception:
+        pass
+    p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_title.paragraph_format.space_after = Pt(12)
+    run = p_title.add_run("Содержание")
+    set_font(run, size_pt=14, bold=False)
+
+    doc.add_paragraph()
+
+    # Вставка поля оглавления Word (TOC)
+    p_toc = doc.add_paragraph()
+    try:
+        p_toc.style = style_normal
+    except Exception:
+        pass
+    run_toc = p_toc.add_run()
+
+    fldChar1 = OxmlElement('w:fldChar')
+    fldChar1.set(qn('w:fldCharType'), 'begin')
+    instrText = OxmlElement('w:instrText')
+    instrText.set(qn('xml:space'), 'preserve')
+    instrText.text = 'TOC \\o "1-3" \\h \\z \\u'
+    fldChar2 = OxmlElement('w:fldChar')
+    fldChar2.set(qn('w:fldCharType'), 'separate')
+    fldChar3 = OxmlElement('w:fldChar')
+    fldChar3.set(qn('w:fldCharType'), 'end')
+
+    run_toc._r.append(fldChar1)
+    run_toc._r.append(instrText)
+    run_toc._r.append(fldChar2)
+    run_toc._r.append(fldChar3)
 
 
 def set_font(run, font_name="Times New Roman", size_pt=12, bold=False, italic=False, color_rgb=(0, 0, 0)):
@@ -73,19 +273,183 @@ def resolve_style_names(doc: Document):
     return style_h1, style_h2, style_normal
 
 
+def clean_cell_value(val: Any) -> str:
+    """Удаляет из значения ячейки Excel скрытые артефакты разметки и переносов строк."""
+    if val is None:
+        return ""
+    s = str(val)
+    # Удаляем артефакты Excel _x000D_ и системные переносы каретки \r
+    s = s.replace("_x000D_", "").replace("_x000D", "").replace("\r", "")
+    return s.strip()
+
+
+def force_xml_update_on_open(doc: Document):
+    """Добавляет в настройки документа команду на автоматическое обновление полей (включая оглавление) при открытии."""
+    try:
+        settings_xml = doc.settings._element
+        updateFields = OxmlElement('w:updateFields')
+        updateFields.set(qn('w:val'), 'true')
+        settings_xml.append(updateFields)
+    except Exception as e:
+        logger.debug(f"Не удалось включить автообновление полей на старте: {e}")
+
+
+def set_style_font_robust(style_obj, font_name="Times New Roman", size_pt=14, bold=False, italic=False,
+                          color_rgb=(0, 0, 0)):
+    """Устанавливает шрифт для стиля с гарантированной поддержкой кириллицы
+
+    и полным отключением переопределения системных тем Word (Calibri/Arial).
+    """
+    font = style_obj.font
+    font.name = font_name
+    font.size = Pt(size_pt)
+    font.bold = bold
+    font.italic = italic
+    font.color.rgb = RGBColor(*color_rgb)
+
+    try:
+        # Переходим к XML-свойствам символов стиля (rPr)
+        rPr = style_obj.element.get_or_add_rPr()
+        rFonts = rPr.get_or_add_rFonts()
+
+        # КРИТИЧЕСКИ ВАЖНО: Удаляем привязку к теме оформления Word (+minor / +major).
+        # Если этого не сделать, Word принудительно вернет Calibri для кириллицы.
+        theme_attrs = ['asciiTheme', 'hAnsiTheme', 'eastAsiaTheme', 'cstheme']
+        for attr in theme_attrs:
+            attrib_key = qn(f'w:{attr}')
+            if attrib_key in rFonts.attrib:
+                del rFonts.attrib[attrib_key]
+
+        # Явно закрепляем Times New Roman для всех наборов символов
+        rFonts.set(qn('w:ascii'), font_name)
+        rFonts.set(qn('w:hAnsi'), font_name)
+        rFonts.set(qn('w:cs'), font_name)
+        rFonts.set(qn('w:eastAsia'), font_name)
+    except Exception as e:
+        logger.debug(f"Не удалось применить глубокую очистку стилей шрифтов: {e}")
+
+
+def get_or_create_style(doc: Document, name: str, style_type=WD_STYLE_TYPE.PARAGRAPH):
+    """Возвращает существующий стиль или принудительно создает его в XML-структуре, если он латентный."""
+    try:
+        return doc.styles[name]
+    except KeyError:
+        try:
+            return doc.styles.add_style(name, style_type)
+        except Exception:
+            # Резервный поиск по имени без учета регистра
+            for s in doc.styles:
+                if s.name.lower() == name.lower():
+                    return s
+    return None
+
+
+def get_or_create_toc_style(doc: Document, level: int):
+    """Находит существующий или создает и корректно регистрирует встроенный стиль оглавления (TOC)
+
+    для того, чтобы MS Word гарантированно применял его при обновлении полей.
+    """
+    english_name = f"toc {level}"
+    russian_name = f"Оглавление {level}"
+    style_name_to_add = f"TOC {level}"
+
+    # Сначала пытаемся найти стиль по любому из возможных названий
+    for s in doc.styles:
+        if s.name.lower() in [english_name.lower(), russian_name.lower(), style_name_to_add.lower()]:
+            return s
+
+    # Если стиль отсутствует в документе, создаем его временную заготовку
+    try:
+        style = doc.styles.add_style(style_name_to_add, WD_STYLE_TYPE.PARAGRAPH)
+    except Exception:
+        try:
+            return doc.styles[style_name_to_add]
+        except Exception:
+            return doc.styles[russian_name]
+
+    # Корректируем XML-структуру стиля, превращая его из пользовательского во встроенный
+    try:
+        style_el = style.element
+        # Задаем системный ID, который ожидает генератор Word ('toc 1', 'toc 2' и т.д.)
+        style_el.set(qn('w:styleId'), english_name)
+        # Снимаем флаг пользовательского стиля (0 означает "встроенный")
+        style_el.set(qn('w:customStyle'), '0')
+
+        # Задаем внутреннее имя стиля
+        name_el = style_el.find(qn('w:name'))
+        if name_el is not None:
+            name_el.set(qn('w:val'), english_name)
+
+        # Добавляем локализованный псевдоним (alias) для поддержки русскоязычной версии Word
+        aliases_el = style_el.find(qn('w:aliases'))
+        if aliases_el is None:
+            aliases_el = OxmlElement('w:aliases')
+            aliases_el.set(qn('w:val'), russian_name)
+            if name_el is not None:
+                idx = style_el.index(name_el)
+                style_el.insert(idx + 1, aliases_el)
+            else:
+                style_el.insert(0, aliases_el)
+        else:
+            aliases_el.set(qn('w:val'), russian_name)
+    except Exception as e:
+        logger.debug(f"Не удалось применить XML-патч для стиля оглавления: {e}")
+
+    return style
+
+
+def configure_toc_styles(doc: Document):
+    """Настраивает форматирование строк оглавления в точном соответствии с макетом."""
+    black_color = (0, 0, 0)
+
+    # Получаем/регистрируем системные стили оглавления
+    style_toc1 = get_or_create_toc_style(doc, 1)
+    style_toc2 = get_or_create_toc_style(doc, 2)
+
+    # 1. Настройка Оглавление 1 (Разделы: Жирный, 14pt, выравнивание по ширине, интервалы 6/6 пт)
+    if style_toc1:
+        set_style_font_robust(
+            style_toc1,
+            font_name="Times New Roman",
+            size_pt=14,
+            bold=True,
+            italic=False,  # Отключено (только жирный, как на первом скриншоте)
+            color_rgb=black_color
+        )
+        pf1 = style_toc1.paragraph_format
+        pf1.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY  # Выравнивание по ширине
+        pf1.space_before = Pt(6)                    # Интервал перед: 6 пт
+        pf1.space_after = Pt(6)                     # Интервал после: 6 пт
+        pf1.line_spacing = 1.0                      # Одинарный межстрочный интервал
+        pf1.left_indent = Cm(0)                     # Без отступа слева
+
+    # 2. Настройка Оглавление 2 (Подразделы: Курсив, 13pt, выравнивание по ширине, отступ 0.39 см, интервалы 3/3 пт)
+    if style_toc2:
+        set_style_font_robust(
+            style_toc2,
+            font_name="Times New Roman",
+            size_pt=13,
+            bold=False,                                 # Не жирный
+            italic=True,                                # Курсив (как на втором скриншоте)
+            color_rgb=black_color
+        )
+        pf2 = style_toc2.paragraph_format
+        pf2.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY  # Выравнивание по ширине
+        pf2.left_indent = Cm(0.39)                  # Отступ слева: 0.39 см
+        pf2.space_before = Pt(3)                    # Интервал перед: 3 пт
+        pf2.space_after = Pt(3)                     # Интервал после: 3 пт
+        pf2.line_spacing = 1.0                      # Одинарный межстрочный интервал
+
+
 def configure_document_styles(doc: Document):
     """Программно настраивает глобальные стили документа согласно заданным параметрам."""
     style_h1, style_h2, style_normal = resolve_style_names(doc)
     black_color = (0, 0, 0)
 
-    def setup_style(style_obj, font_name="Times New Roman", size_pt=14, bold=False, italic=False, color_rgb=black_color,
-                    align=None):
-        font = style_obj.font
-        font.name = font_name
-        font.size = Pt(size_pt)
-        font.bold = bold
-        font.italic = italic
-        font.color.rgb = RGBColor(*color_rgb)
+    def setup_style(style_obj, size_pt=14, bold=False, italic=False, align=None):
+        # Применяем надежную настройку шрифта стиля (с поддержкой кириллицы)
+        set_style_font_robust(style_obj, font_name="Times New Roman", size_pt=size_pt, bold=bold, italic=italic,
+                              color_rgb=black_color)
 
         # Настройка абзацных интервалов и выравнивания
         pf = style_obj.paragraph_format
@@ -107,6 +471,8 @@ def configure_document_styles(doc: Document):
     if style_h2 in doc.styles:
         setup_style(doc.styles[style_h2], size_pt=14, bold=False, italic=True, align=WD_ALIGN_PARAGRAPH.JUSTIFY)
 
+    # Настройка стилей отображения элементов автооглавления
+    configure_toc_styles(doc)
 
 def set_repeat_table_header(row):
     """Включает повторение строки таблицы на каждой новой странице (tblHeader)."""
@@ -148,9 +514,9 @@ def set_cell_text(cell, text: str, style_name="Normal", bold=False, italic=False
 class CompetencyReportGenerator:
     """Класс для сопоставления компетенций и дисциплин из учебного плана в документ Word."""
 
-    def __init__(self, excel_path: Union[str, Path], word_folder_path: Union[str, Path]) -> None:
+    def __init__(self, excel_path: Union[str, Path], word_file_path: Union[str, Path]) -> None:
         self.excel_path: Path = Path(excel_path)
-        self.word_folder_path: Path = Path(word_folder_path)
+        self.word_file_path: Path = Path(word_file_path)
 
     def _find_semester_columns(self, sheet: Worksheet) -> Dict[int, int]:
         """
@@ -390,6 +756,9 @@ class CompetencyReportGenerator:
         print(f"Анализ структуры учебного плана на листе '{plan_sheet_name}'...")
         plan_db: Dict[str, Dict[str, Any]] = self._parse_plan_sheet(wb[plan_sheet_name])
 
+        # Парсинг информации для титульного листа
+        title_info: Dict[str, str] = _parse_title_info(wb)
+
         sheet_comp = wb[ExcelConfig.COMPETENCY_SHEET_NAME]
         competencies: List[Dict[str, Any]] = self._parse_competencies(sheet_comp)
 
@@ -404,17 +773,38 @@ class CompetencyReportGenerator:
         # Инициализация Word
         doc = Document()
 
+        force_xml_update_on_open(doc)
+
+        sect0 = doc.sections[0]
+        sect0.top_margin = Cm(2.0)
+        sect0.bottom_margin = Cm(2.0)
+        sect0.left_margin = Cm(3.0)
+        sect0.right_margin = Cm(1.5)
+
         # Настройка и глобальное переопределение параметров стилей
         configure_document_styles(doc)
         style_h1, style_h2, style_normal = resolve_style_names(doc)
 
-        # Настройка альбомной ориентации для широкой таблицы
-        section = doc.sections[-1]
-        new_width, new_height = section.page_height, section.page_width
-        section.page_width = new_width
-        section.page_height = new_height
+        # 1. Первая страница: Титульный лист (ориентация Книжная по умолчанию)
+        generate_title_page(doc, title_info, style_normal)
 
-        # 1. Добавление Раздела 1 перед таблицей (Стиль "Заголовок 1")
+        # 2. Вторая страница: Содержание (ориентация Книжная)
+        doc.add_page_break()
+        generate_toc_page(doc, style_normal)
+
+        # 3. Третья страница: Создание новой секции с Альбомной ориентацией для таблицы
+        table_section = doc.add_section()
+        table_section.orientation = WD_ORIENT.LANDSCAPE
+        new_width, new_height = table_section.page_height, table_section.page_width
+        table_section.page_width = new_width
+        table_section.page_height = new_height
+
+        table_section.top_margin = Cm(3.0)
+        table_section.bottom_margin = Cm(1.5)
+        table_section.left_margin = Cm(2.0)
+        table_section.right_margin = Cm(2.0)
+
+        # Добавление Раздела 1 перед таблицей (Стиль "Заголовок 1")
         p_header = doc.add_paragraph()
         try:
             p_header.style = style_h1
@@ -425,12 +815,11 @@ class CompetencyReportGenerator:
         p_header.paragraph_format.space_after = Pt(18)
         p_header.paragraph_format.keep_with_next = True  # Привязываем заголовок к таблице
 
-        run_header = p_header.add_run(
+        p_header.add_run(
             "Раздел 1. Матрица соответствия между компетенциями и дисциплинами и практиками их формирующими"
         )
-        set_font(run_header, font_name="Times New Roman", size_pt=14, bold=True, italic=False)
 
-        # 2. Создание таблицы
+        # 4. Создание таблицы
         table = doc.add_table(rows=1, cols=5)
         table.style = "Table Grid"
 
@@ -528,14 +917,11 @@ class CompetencyReportGenerator:
 
         try:
             # Создаем папку, если она не существует
-            self.word_folder_path.mkdir(parents=True, exist_ok=True)
+            self.word_file_path.parent.mkdir(parents=True, exist_ok=True)
 
-            # Конструируем итоговый путь к файлу
-            final_docx_path = self.word_folder_path / "ИИ Оценочные материалы.docx"
-
-            doc.save(str(final_docx_path.absolute()))
+            doc.save(str(self.word_file_path.absolute()))
             print(
-                f"\nПроцесс завершен. Таблица успешно сохранена в файл:\n'{final_docx_path.name}'\nПо адресу: {final_docx_path.parent}")
+                f"\nПроцесс завершен. Таблица успешно сохранена в файл:\n'{self.word_file_path.name}'\nПо адресу: {self.word_file_path.parent}")
         except Exception as e:
             logger.error(f"Не удалось сохранить итоговый документ Word: {e}")
 
@@ -552,13 +938,15 @@ def main():
         print(f"Используется путь по умолчанию для Excel: {user_excel_path}")
 
     if not user_folder_path:
-        user_folder_path = "."
+        user_folder_path = ".."
         print(f"Используется текущая рабочая папка по умолчанию: {Path(user_folder_path).absolute()}")
 
     print("\nЗапуск процесса генерации...")
+    file_path = Path(user_folder_path) / "Оценочные материалы.docx"
+
     generator = CompetencyReportGenerator(
-        excel_path=user_excel_path,
-        word_folder_path=user_folder_path
+        excel_path=Path(user_excel_path),
+        word_file_path=file_path
     )
     generator.generate()
 

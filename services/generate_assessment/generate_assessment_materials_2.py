@@ -2,13 +2,12 @@ import os
 import re
 import logging
 from docx import Document
-from docx.shared import Pt, Inches, RGBColor
+from docx.shared import Pt, Inches, RGBColor, Cm
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.section import WD_ORIENT
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
-# Настройка логирования
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -63,7 +62,10 @@ def add_styled_paragraph(doc, text="", style_name="Normal", bold=False, italic=F
 
     if text:
         run = p.add_run(text)
-        set_font(run, bold=bold, italic=italic)
+        if "heading" in style_name.lower() or "заголовок" in style_name.lower():
+            pass
+        else:
+            set_font(run, bold=bold, italic=italic)
     return p
 
 
@@ -268,8 +270,18 @@ def generate_section_2(doc: Document, competencies: list):
     style_h1, style_h2, style_normal = resolve_style_names(doc)
     logger.info(f"Используемые стили Word: H1='{style_h1}', H2='{style_h2}', Normal='{style_normal}'")
 
-    # Разрыв страницы после исходной таблицы
-    doc.add_page_break()
+    # Вместо разрыва страницы создаем новую секцию с возвратом к книжной ориентации
+    new_section = doc.add_section()
+    new_section.orientation = WD_ORIENT.PORTRAIT
+    if new_section.page_width > new_section.page_height:
+        w, h = new_section.page_width, new_section.page_height
+        new_section.page_width = h
+        new_section.page_height = w
+
+    new_section.top_margin = Cm(2.0)
+    new_section.bottom_margin = Cm(2.0)
+    new_section.left_margin = Cm(3.0)
+    new_section.right_margin = Cm(1.5)
 
     # Заголовок раздела (Стиль "Заголовок 1", выравнивание наследуется)
     add_styled_paragraph(

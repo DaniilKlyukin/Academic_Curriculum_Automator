@@ -3,6 +3,7 @@ from pathlib import Path
 from services.generate_assessment.generate_assessment_materials_1 import CompetencyReportGenerator as TableGenerator
 from services.generate_assessment.generate_assessment_materials_2 import CompetencyReportGenerator as Section2Generator
 from services.generate_assessment.generate_assessment_materials_3 import CompetencyReportGenerator as Section3Generator
+from services.generate_assessment.generate_assessment_materials_4 import CompetencyReportGenerator as Section4Generator
 
 logger = logging.getLogger(__name__)
 
@@ -11,8 +12,8 @@ def main():
     print("=== Мастер-панель комплексной генерации оценочных материалов ===")
 
     user_excel_path: str = input("Шаг 1. Введите путь к исходному файлу Excel (например, plan.xlsx): ").strip()
-    user_folder_path: str = input(
-        "Шаг 2. Введите путь к папке для сохранения документа Word (например, C:\\Reports): ").strip()
+    user_folder_path: str = input("Шаг 2. Введите путь к папке для сохранения документа Word (например, C:\\Reports): ").strip()
+    user_rp_folder: str = input("Шаг 3. Введите путь к папке с файлами Рабочих Программ (РП): ").strip()
 
     if not user_excel_path:
         user_excel_path = "plan.xlsx"
@@ -26,7 +27,7 @@ def main():
     folder_path = Path(user_folder_path)
 
     # Путь к итоговому файлу, который будет создан на Шаге 1 и последовательно наполнен на Шагах 2 и 3
-    final_docx_path = folder_path / "Оценочные материалы.docx"
+    final_docx_path = folder_path / "Оценочные материалы образовательной программы.docx"
 
     print("\n" + "=" * 70)
     print("ЗАПУСК ШАГА 1: Генерация Титульного листа, Содержания и Раздела 1 (Таблица)")
@@ -63,10 +64,24 @@ def main():
     section3_generator.generate()
 
     print("\n" + "=" * 70)
-    print("ОБРАБОТКА ПОЛНОСТЬЮ ЗАВЕРШЕНА")
+    print("ЗАПУСК ШАГА 4: Поиск и интеграция реальных тестов из файлов РП")
+    print("=" * 70)
+
+    section4_generator = Section4Generator(
+        word_path=str(final_docx_path.absolute()),
+        rp_folder_path=user_rp_folder
+    )
+    section4_generator.generate()
+
+    print("\n" + "=" * 70)
+    print("КОМПЛЕКСНАЯ ОБРАБОТКА ПОЛНОСТЬЮ ЗАВЕРШЕНА")
     print(f"Итоговый документ собран в: '{final_docx_path.name}'")
     print(f"Путь к файлу: {final_docx_path.parent}")
     print("=" * 70)
+
+
+if __name__ == "__main__":
+    main()
 
 
 if __name__ == "__main__":

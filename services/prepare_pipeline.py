@@ -3,7 +3,7 @@ from services.doc_converter import convert_doc_to_docx
 from services.media_cleaner import WordImageCleanerDocx
 from services.approval_processor import process_docx, generate_years
 from services.signature_processor import process_docx_signatures
-from services.filename_cleaner import FilenameCleaner
+from services.filename_standardizer import FilenameStandardizer
 from services.file_cleaner import FileCleaner
 
 
@@ -51,8 +51,8 @@ def main():
         print(f" [{i}/{len(docx_files)}] Обновление: {filename[:40]}...", end='\r')
 
     print("\n[6/6] Очистка имен файлов...")
-    fn_cleaner = FilenameCleaner(folder_path)
-    fn_cleaner.run()
+    fn_standardizer = FilenameStandardizer(folder_path)
+    fn_standardizer.run()
 
     print("\n=== Все операции успешно завершены ===")
 

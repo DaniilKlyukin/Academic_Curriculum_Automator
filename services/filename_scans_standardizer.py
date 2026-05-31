@@ -8,6 +8,7 @@ from openpyxl import load_workbook
 from PIL import Image
 import fitz
 import easyocr
+import numpy as np
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
@@ -27,13 +28,36 @@ def get_ocr_reader() -> easyocr.Reader:
 
 
 def clean_name_for_match(name: str) -> str:
-    """Очищает строку от кавычек, пробелов и регистра для сравнения."""
+    """Очищает строку от кавычек, пробелов, регистра и всех типов дефисов/тире
+
+    для максимально надежного сравнения текста.
+    """
     if not name:
         return ""
     s = name.lower()
     s = "".join(s.split())
+    # Удаляем кавычки и знаки препинания
     s = s.replace("«", "").replace("»", "").replace('"', '').replace("'", "")
+    # Принудительно удаляем любые типы дефисов и тире
+    s = s.replace("-", "").replace("—", "").replace("–", "")
     return s
+
+
+def dice_similarity(s1: str, s2: str) -> float:
+    """Вычисляет взаимное сходство Сёренсена-Диса между двумя строками (от 0.0 до 1.0)."""
+    if not s1 or not s2:
+        return 0.0
+    if s1 == s2:
+        return 1.0
+
+    if len(s1) < 2 or len(s2) < 2:
+        return 1.0 if s1 in s2 or s2 in s1 else 0.0
+
+    b1 = set(s1[i:i + 2] for i in range(len(s1) - 1))
+    b2 = set(s2[i:i + 2] for i in range(len(s2) - 1))
+
+    overlap = len(b1 & b2)
+    return 2.0 * overlap / (len(b1) + len(b2))
 
 
 def abbreviate_word(word: str) -> str:
@@ -126,21 +150,25 @@ def extract_text_from_file(file_path: Path) -> str:
             for page in doc:
                 text += page.get_text() or ""
 
-            # 2. Если векторного текста нет, рендерим первую страницу в картинку и шлем в EasyOCR
-            if not text.strip() and len(doc) > 0:
-                page = doc[0]
-                pix = page.get_pixmap(dpi=150)
-                img_bytes = pix.tobytes("png")
+                # 2. Если векторного текста нет, рендерим первую страницу в картинку и шлем в EasyOCR
+                if not text.strip() and len(doc) > 0:
+                    page = doc[0]
+                    pix = page.get_pixmap(dpi=150)
+                    img_bytes = pix.tobytes("png")
 
-                reader = get_ocr_reader()
-                results = reader.readtext(img_bytes)
-                text = " ".join([res[1] for res in results])
+                    reader = get_ocr_reader()
+                    results = reader.readtext(img_bytes)
+                    text = "\n".join([res[1] for res in results])  # Склеиваем по строкам
 
         elif ext in (".jpg", ".jpeg", ".png"):
             # Читаем картинку через EasyOCR напрямую
+            img = Image.open(file_path).convert('RGB')
+            img_array = np.array(img)
+
             reader = get_ocr_reader()
-            results = reader.readtext(str(file_path.absolute()))
-            text = " ".join([res[1] for res in results])
+            results = reader.readtext(img_array)
+            text = "\n".join([res[1] for res in results])  # Склеиваем по строкам
+
 
     except Exception as e:
         logger.warning(f"Ошибка оптического распознавания файла {file_path.name}: {e}")
@@ -168,29 +196,44 @@ def classify_page_text(text: str) -> Optional[int]:
 
 
 def match_discipline_from_text(text: str, plan_disciplines: List[str]) -> Optional[str]:
-    """Находит наиболее подходящее название дисциплины в распознанном тексте скана."""
-    text_clean = "".join(text.lower().split())
+    """Находит наиболее подходящую дисциплину, сравнивая её построчно
 
-    # 1. Поиск точного совпадения без пробелов
-    for disc in plan_disciplines:
-        disc_clean = "".join(disc.lower().split())
-        if disc_clean in text_clean:
-            return disc
+    с распознанным текстом скана с помощью коэффициента Сёренсена-Диса.
+    """
+    # Выводим распознанный текст построчно в лог для отладки
+    raw_lines = [line.strip() for line in text.split('\n') if line.strip()]
+    logger.info("Распознанный текст на странице:")
+    for line in raw_lines:
+        logger.info(f"  | {line}")
 
-    # 2. Поиск по ключевым словам (устойчивый к опечаткам OCR)
+    # Очищаем строки текста от пробелов и дефисов
+    lines_clean = [clean_name_for_match(line) for line in raw_lines if len(line.strip()) > 3]
+    if not lines_clean:
+        return None
+
     best_match = None
-    max_words_matched = 0
+    max_similarity = 0.0
 
     for disc in plan_disciplines:
-        words = [w.lower() for w in disc.split() if len(w) > 4]
-        if not words:
+        disc_clean = clean_name_for_match(disc)
+        if not disc_clean:
             continue
-        matched_words = sum(1 for w in words if w in text.lower())
-        if matched_words > max_words_matched and matched_words >= len(words) * 0.6:
-            max_words_matched = matched_words
-            best_match = disc
 
-    return best_match
+        # Сравниваем эталонное название дисциплины с каждой строкой скана по отдельности
+        for line in lines_clean:
+            sim = dice_similarity(disc_clean, line)
+            if sim > max_similarity:
+                max_similarity = sim
+                best_match = disc
+
+    if best_match:
+        logger.info(f"  -> Лучший кандидат: '{best_match}' (построчное сходство: {max_similarity:.1%})")
+
+    # Увеличиваем порог уверенности до 70% (для построчного сравнения это очень надежно)
+    if max_similarity >= 0.70:
+        return best_match
+
+    return None
 
 
 class ScanRenamer:

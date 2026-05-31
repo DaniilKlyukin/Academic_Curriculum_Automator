@@ -43,7 +43,7 @@ def main() -> None:
         "4": ("Удаление PDF и изображений (JPG, PNG)", run_cleanup_files),
         "5": ("Рекурсивная конвертация DOCX/PPTX в PDF", run_convert_to_pdf),
         "6": ("Конвертация .doc в .docx", run_doc_converter),
-        "7": ("Массовая стандартизация имен файлов", run_filename_standardizer),
+        "7": ("Массовая стандартизация имен файлов РП", run_filename_standardizer),
         "8": ("Очистка DOCX от тяжелых медиа-объектов", run_media_cleanup),
         "9": ("Автоматическая вставка сканов", run_scan_insertion),
         "10": ("Умное переименование сканов", run_scan_standardizer),

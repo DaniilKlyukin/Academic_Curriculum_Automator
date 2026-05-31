@@ -7,10 +7,10 @@ from services.approval_processor import main as run_approval_update
 from services.file_cleaner import main as run_cleanup_files
 from services.pdf_generator import main as run_convert_to_pdf
 from services.doc_converter import main as run_doc_converter
-from services.filename_cleaner import main as run_filename_cleanup
+from services.filename_standardizer import main as run_filename_standardizer
 from services.media_cleaner import main as run_media_cleanup
 from services.scan_insertion import main as run_scan_insertion
-from services.scan_renamer import main as run_scan_renamer
+from services.filename_scans_standardizer import main as run_scan_standardizer
 from services.signature_processor import main as run_signature_update
 from services.structure_exporter import main as run_structure_exporter
 from services.generate_assessment.generate_assessment_materials import main as generate_assessment_materials
@@ -43,10 +43,10 @@ def main() -> None:
         "4": ("Удаление PDF и изображений (JPG, PNG)", run_cleanup_files),
         "5": ("Рекурсивная конвертация DOCX/PPTX в PDF", run_convert_to_pdf),
         "6": ("Конвертация .doc в .docx", run_doc_converter),
-        "7": ("Массовая очистка имен файлов", run_filename_cleanup),
+        "7": ("Массовая стандартизация имен файлов", run_filename_standardizer),
         "8": ("Очистка DOCX от тяжелых медиа-объектов", run_media_cleanup),
         "9": ("Автоматическая вставка сканов", run_scan_insertion),
-        "10": ("Умное переименование сканов", run_scan_renamer),
+        "10": ("Умное переименование сканов", run_scan_standardizer),
         "11": ("Замена ФИО и должности в зонах подписей", run_signature_update),
         "12": ("Генератор структуры папок для ИИ", run_structure_exporter),
         "13": ("Создание оценочных материалов на основе плана", generate_assessment_materials),

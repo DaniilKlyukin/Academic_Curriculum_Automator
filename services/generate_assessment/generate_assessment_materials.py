@@ -1,3 +1,4 @@
+import os
 import logging
 from pathlib import Path
 from services.generate_assessment.generate_assessment_materials_1 import CompetencyReportGenerator as TableGenerator
@@ -22,6 +23,27 @@ def main():
     if not user_folder_path:
         user_folder_path = "."
         print(f"Используется текущая рабочая папка по умолчанию: {Path(user_folder_path).absolute()}")
+
+    # Настройка параметров ИИ-генерации для Шага 4
+    print("\nШаг 4. Настройка режима интеграции тестов (ИИ):")
+    print("  1 — Полный ИИ (все тесты генерируются ИИ, файлы РП игнорируются)")
+    print("  2 — Смешанный (тесты берутся из РП; если не найдено — генерируются ИИ)")
+    print("  3 — Без ИИ (оригинальное поведение: тесты только из РП, иначе заглушки)")
+    ai_mode_input = input("Выберите режим [По умолчанию: 3]: ").strip()
+    ai_mode = int(ai_mode_input) if ai_mode_input in ["1", "2", "3"] else 3
+
+    api_key = ""
+    rpm_limit = 15
+    if ai_mode in [1, 2]:
+        api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+        if not api_key:
+            api_key = input("Введите ваш API-ключ Gemini (или оставьте пустым, если задан в GEMINI_API_KEY): ").strip()
+            if not api_key:
+                api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+
+        rpm_input = input("Введите лимит запросов в минуту (RPM) [По умолчанию: 15]: ").strip()
+        if rpm_input.isdigit():
+            rpm_limit = int(rpm_input)
 
     excel_path = Path(user_excel_path)
     folder_path = Path(user_folder_path)
@@ -64,12 +86,15 @@ def main():
     section3_generator.generate()
 
     print("\n" + "=" * 70)
-    print("ЗАПУСК ШАГА 4: Поиск и интеграция реальных тестов из файлов РП")
+    print("ЗАПУСК ШАГА 4: Поиск и интеграция реальных тестов из файлов РП / ИИ")
     print("=" * 70)
 
     section4_generator = Section4Generator(
         word_path=str(final_docx_path.absolute()),
-        rp_folder_path=user_rp_folder
+        rp_folder_path=user_rp_folder,
+        ai_mode=ai_mode,
+        api_key=api_key,
+        rpm_limit=rpm_limit
     )
     section4_generator.generate()
 
@@ -78,10 +103,6 @@ def main():
     print(f"Итоговый документ собран в: '{final_docx_path.name}'")
     print(f"Путь к файлу: {final_docx_path.parent}")
     print("=" * 70)
-
-
-if __name__ == "__main__":
-    main()
 
 
 if __name__ == "__main__":

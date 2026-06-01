@@ -6,31 +6,38 @@ from typing import Dict, Tuple, Any, List
 from openpyxl import load_workbook
 from docx import Document
 
+# Настройка логирования
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
+def normalize_homoglyphs(text: str) -> str:
+    """Заменяет английские буквы-омоглифы на их русские аналоги."""
+    eng_to_rus = {
+        'a': 'а', 'b': 'в', 'c': 'с', 'e': 'е', 'h': 'н', 'k': 'к', 'm': 'м',
+        'o': 'о', 'p': 'р', 't': 'т', 'x': 'х', 'y': 'у', 'ё': 'е'
+    }
+    return "".join(eng_to_rus.get(char, char) for char in text.lower())
+
+
 def clean_name_for_match(name: str) -> str:
-    """Очищает строку от кавычек, пробелов и регистра для точного сравнения имен."""
+    """Очищает строку от кавычек, пробелов и регистра с устранением омоглифов."""
     if not name:
         return ""
     s = name.lower()
+    s = normalize_homoglyphs(s)
     s = "".join(s.split())
     s = s.replace("«", "").replace("»", "").replace('"', '').replace("'", "")
     return s
 
 
 def abbreviate_word(word: str) -> str:
-    """Сокращает слово до первой согласной после первой гласной,
-
-    сохраняя при этом технические спецсимволы (+, #).
-    """
+    """Сокращает слово до первой согласной после первой гласной с поддержкой спецсимволов."""
     vowels = set("аеёиоуыэюя")
-    # Разрешаем буквы, цифры, а также символы '+' и '#' (для C++, C# и т.д.)
     word_clean = "".join([c for c in word if c.isalnum() or c in ('+', '#')])
     if not word_clean:
         return ""
 
-    # Ищем первую гласную
     first_vowel_idx = -1
     for idx, char in enumerate(word_clean):
         if char.lower() in vowels:
@@ -38,10 +45,8 @@ def abbreviate_word(word: str) -> str:
             break
 
     if first_vowel_idx == -1:
-        # Если в слове нет гласных (например, C#, C++), оставляем его как есть
         return word_clean
 
-    # Ищем первую согласную ПОСЛЕ первой гласной
     first_consonant_after_vowel_idx = -1
     for idx in range(first_vowel_idx + 1, len(word_clean)):
         if word_clean[idx].lower() not in vowels:
@@ -55,15 +60,10 @@ def abbreviate_word(word: str) -> str:
 
 
 def abbreviate_discipline(name: str) -> str:
-    """Сокращает название дисциплины, обрабатывая сложные слова с дефисами
-
-    и игнорируя незначимые предлоги (на, по, в, с, для и т.д.).
-    """
-    # Заменяем дефисы пробелами, чтобы разделить составные слова (Объектно-ориентированное -> Объектно ориентированное)
+    """Сокращает название дисциплины (идентично для сканов и DOCX)."""
     normalized_name = name.replace("-", " ")
     words = normalized_name.split()
 
-    # Список предлогов, которые мы полностью игнорируем/пропускаем при сокращении
     stop_words = {"на", "по", "в", "с", "для", "под", "о", "об", "за", "из", "от", "до", "без"}
 
     abbr_words = []
@@ -75,7 +75,6 @@ def abbreviate_discipline(name: str) -> str:
         if not abbr:
             continue
 
-        # Союз "и" сохраняем в нижнем регистре для красоты (например, ИнТехиПрог)
         if w.lower() == "и":
             abbr_words.append("и")
         else:
@@ -85,7 +84,6 @@ def abbreviate_discipline(name: str) -> str:
 
 
 def _parse_title_info_from_sheet(sheet) -> Dict[str, str]:
-    """Вспомогательный метод парсинга шифра направления с листа Титул."""
     info = {"code": ""}
     for r in range(1, min(sheet.max_row + 1, 100)):
         for c in range(1, min(sheet.max_column + 1, 20)):
@@ -100,7 +98,6 @@ def _parse_title_info_from_sheet(sheet) -> Dict[str, str]:
 
 
 def load_excel_mapping(excel_path: Path) -> Tuple[Dict[str, str], str]:
-    """Считывает учебный план и возвращает карту сопоставления 'дисциплина -> код' и шифр специальности."""
     wb = load_workbook(str(excel_path.absolute()), data_only=True)
 
     specialty_code = ""
@@ -131,7 +128,6 @@ def load_excel_mapping(excel_path: Path) -> Tuple[Dict[str, str], str]:
 
 
 def get_rp_title(doc: Document) -> str:
-    """Извлекает название дисциплины с титульного листа РП."""
     found_marker = False
     for p in doc.paragraphs:
         txt = " ".join(p.text.split()).strip().lower()
@@ -150,15 +146,10 @@ def get_rp_title(doc: Document) -> str:
 
 
 def parse_authors(doc: Document) -> str:
-    """Извлекает составителей РП и преобразует их имена в инициалы (например, 'НефедовДГ КлюкинДА').
-
-    Использует универсальное правило: ФИО состоит из слов с заглавной буквы.
-    """
     authors = []
     found_compiler_section = False
     parsed_paragraphs_count = 0
 
-    # Стоп-фразы, которые сигнализируют о том, что блок составителей закончился
     stop_phrases = [
         "рабочая программа составлена", "протокол", "заведующий", "согласовано",
         "председатель", "учебно-методической", "количество часов", "декан", "директор"
@@ -171,7 +162,6 @@ def parse_authors(doc: Document) -> str:
 
         text_lower = text.lower()
 
-        # Если мы уже в блоке составителей, проверяем стоп-фразы для немедленного выхода
         if found_compiler_section:
             if any(phrase in text_lower for phrase in stop_phrases) or "содержание" in text_lower or "1." in text_lower:
                 break
@@ -179,7 +169,6 @@ def parse_authors(doc: Document) -> str:
             if parsed_paragraphs_count > 4:
                 break
 
-        # Ищем маркер начала блока составителей
         if "составитель" in text_lower or "разработчик" in text_lower or "составители" in text_lower:
             found_compiler_section = True
             parsed_paragraphs_count = 0
@@ -190,17 +179,14 @@ def parse_authors(doc: Document) -> str:
                 '', text, flags=re.IGNORECASE
             ).strip()
 
-            # Разбиваем строку на отдельные слова и очищаем их от знаков препинания
             words_clean = []
             for w in clean_line.split():
                 w_stripped = w.strip(".,()\"';:-")
                 if w_stripped:
                     words_clean.append(w_stripped)
 
-            # Главный фильтр: отбираем только слова, начинающиеся с заглавной буквы (ФИО)
             words_filtered = [w for w in words_clean if w[0].isupper() and w.isalpha()]
 
-            # Если нашли имя (Минимум фамилия + имя, например: Нефедов Денис [Геннадьевич])
             if len(words_filtered) >= 2:
                 last_name = words_filtered[0].capitalize()
                 first_init = words_filtered[1][0].upper() if words_filtered[1] else ""
@@ -218,7 +204,6 @@ def parse_authors(doc: Document) -> str:
 
 
 class FilenameStandardizer:
-    """Класс стандартизации имен файлов РП согласно учебному плану."""
 
     def __init__(self, root_dir: str, excel_path: str):
         self.root_dir = Path(root_dir)
@@ -241,7 +226,6 @@ class FilenameStandardizer:
 
         updated_count = 0
 
-        # Сканируем docx файлы в папке
         for docx_path in self.root_dir.glob("*.docx"):
             if docx_path.name.startswith("~$"):
                 continue
@@ -259,30 +243,25 @@ class FilenameStandardizer:
                     logger.warning(f"  [-] Дисциплина '{title}' не найдена в учебном плане. Файл не переименован.")
                     continue
 
-                # Извлекаем авторов и сокращаем имя дисциплины
                 authors = parse_authors(doc)
                 abbr_discipline = abbreviate_discipline(title)
 
-                # Строим эталонное имя файла
                 new_base_name = f"{code} РП {abbr_discipline} {specialty_code} {authors}".strip()
                 new_docx_name = f"{new_base_name}.docx"
 
                 if new_docx_name == docx_path.name:
                     continue
 
-                # Проверка на коллизии
                 new_docx_path = docx_path.with_name(new_docx_name)
                 counter = 1
                 while new_docx_path.exists():
                     new_docx_path = docx_path.with_name(f"{new_base_name}_{counter}.docx")
                     counter += 1
 
-                # Переименование DOCX
                 docx_path.rename(new_docx_path)
                 logger.info(f"  [+] Переименован DOCX: '{docx_path.name}' -> '{new_docx_path.name}'")
                 updated_count += 1
 
-                # Поиск и синхронное переименование парного PDF
                 pdf_path = docx_path.with_suffix(".pdf")
                 if pdf_path.exists():
                     new_pdf_name = new_docx_path.with_suffix(".pdf").name
@@ -298,8 +277,13 @@ class FilenameStandardizer:
 
 def main():
     print("=== Массовое приведение имен файлов РП к стандарту ===")
-    user_root_dir = input("Шаг 1. Введите путь к папке с РП: ").strip().strip('"')
-    user_excel_path = input("Шаг 2. Введите путь к файлу учебного плана Excel (plan.xlsx): ").strip().strip('"')
+    try:
+        user_root_dir = input("Шаг 1. Введите путь к папке с РП: ").strip().strip('"')
+        user_excel_path = input("Шаг 2. Введите путь к файлу учебного плана Excel (plan.xlsx): ").strip().strip('"')
+    except UnicodeDecodeError:
+        print("Ошибка кодировки консоли! Используются пути по умолчанию.")
+        user_root_dir = "."
+        user_excel_path = "plan.xlsx"
 
     if not user_root_dir:
         user_root_dir = "."

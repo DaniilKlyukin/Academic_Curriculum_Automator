@@ -2,68 +2,48 @@ import os
 import re
 import logging
 import io
+import difflib
 from pathlib import Path
-from typing import List, Dict, Tuple, Optional, Any
+from typing import List, Tuple, Optional
 from openpyxl import load_workbook
 from PIL import Image
 import fitz
-import easyocr
-import numpy as np
+import pytesseract
 
 # Настройка логирования
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Ленивая инициализация EasyOCR, чтобы не тратить ресурсы до начала работы
-_easyocr_reader: Optional[easyocr.Reader] = None
+TESSERACT_CMD = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+if os.path.exists(TESSERACT_CMD):
+    pytesseract.pytesseract.tesseract_cmd = TESSERACT_CMD
+else:
+    logger.warning(f"Указанный путь к Tesseract OCR не найден: {TESSERACT_CMD}")
 
 
-def get_ocr_reader() -> easyocr.Reader:
-    """Инициализирует и возвращает глобальный объект распознавания EasyOCR."""
-    global _easyocr_reader
-    if _easyocr_reader is None:
-        logger.info("Инициализация библиотеки EasyOCR (при первом запуске будут загружены языковые модели)...")
-        # Инициализируем распознавание русского и английского текста на процессоре (GPU=False для совместимости)
-        _easyocr_reader = easyocr.Reader(['ru', 'en'], gpu=False)
-    return _easyocr_reader
+def normalize_homoglyphs(text: str) -> str:
+    """Заменяет английские буквы-омоглифы на их русские аналоги."""
+    eng_to_rus = {
+        'a': 'а', 'b': 'в', 'c': 'с', 'e': 'е', 'h': 'н', 'k': 'к', 'm': 'м',
+        'o': 'о', 'p': 'р', 't': 'т', 'x': 'х', 'y': 'у', 'ё': 'е'
+    }
+    return "".join(eng_to_rus.get(char, char) for char in text.lower())
 
 
-def clean_name_for_match(name: str) -> str:
-    """Очищает строку от кавычек, пробелов, регистра и всех типов дефисов/тире
-
-    для максимально надежного сравнения текста.
-    """
-    if not name:
+def clean_text_strict(text: str) -> str:
+    """Жесткая очистка текста для алгоритма скользящего окна."""
+    if not text:
         return ""
-    s = name.lower()
-    s = "".join(s.split())
-    # Удаляем кавычки и знаки препинания
-    s = s.replace("«", "").replace("»", "").replace('"', '').replace("'", "")
-    # Принудительно удаляем любые типы дефисов и тире
-    s = s.replace("-", "").replace("—", "").replace("–", "")
-    return s
-
-
-def dice_similarity(s1: str, s2: str) -> float:
-    """Вычисляет взаимное сходство Сёренсена-Диса между двумя строками (от 0.0 до 1.0)."""
-    if not s1 or not s2:
-        return 0.0
-    if s1 == s2:
-        return 1.0
-
-    if len(s1) < 2 or len(s2) < 2:
-        return 1.0 if s1 in s2 or s2 in s1 else 0.0
-
-    b1 = set(s1[i:i + 2] for i in range(len(s1) - 1))
-    b2 = set(s2[i:i + 2] for i in range(len(s2) - 1))
-
-    overlap = len(b1 & b2)
-    return 2.0 * overlap / (len(b1) + len(b2))
+    s = text.lower()
+    s = normalize_homoglyphs(s)
+    s = re.sub(r'[^а-яa-z0-9\s]', ' ', s)
+    return re.sub(r'\s+', ' ', s).strip()
 
 
 def abbreviate_word(word: str) -> str:
-    """Сокращает слово до первой согласной после первой гласной."""
+    """Сокращает слово до первой согласной после первой гласной с поддержкой спецсимволов."""
     vowels = set("аеёиоуыэюя")
-    word_clean = "".join([c for c in word if c.isalpha()])
+    word_clean = "".join([c for c in word if c.isalnum() or c in ('+', '#')])
     if not word_clean:
         return ""
 
@@ -89,7 +69,7 @@ def abbreviate_word(word: str) -> str:
 
 
 def abbreviate_discipline(name: str) -> str:
-    """Сокращает название дисциплины (например, Объектно-ориентированное программирование -> ОбОрПрог)."""
+    """Сокращает название дисциплины (идентично для сканов и DOCX)."""
     normalized_name = name.replace("-", " ")
     words = normalized_name.split()
 
@@ -113,19 +93,13 @@ def abbreviate_discipline(name: str) -> str:
 
 
 def load_disciplines_from_excel(excel_path: Path) -> List[str]:
-    """Считывает список названий всех дисциплин из вкладки 'План' Excel."""
     wb = load_workbook(str(excel_path.absolute()), data_only=True)
     disciplines = []
 
-    plan_sheet_name = "План"
-    if plan_sheet_name not in wb.sheetnames:
-        for name in wb.sheetnames:
-            if "план" in name.lower() and "свод" not in name.lower():
-                plan_sheet_name = name
-                break
+    target_sheets = [name for name in wb.sheetnames if "план" in name.lower()]
 
-    if plan_sheet_name in wb.sheetnames:
-        sheet = wb[plan_sheet_name]
+    for sheet_name in target_sheets:
+        sheet = wb[sheet_name]
         for row in range(1, sheet.max_row + 1):
             code_val = str(sheet.cell(row=row, column=2).value or "").strip()
             name_val = str(sheet.cell(row=row, column=3).value or "").strip()
@@ -133,111 +107,80 @@ def load_disciplines_from_excel(excel_path: Path) -> List[str]:
                 if re.match(r"^[БФТД]\d+", code_val):
                     if name_val not in disciplines:
                         disciplines.append(name_val)
-    return disciplines
+    return list(set(disciplines))
 
 
 def extract_text_from_file(file_path: Path) -> str:
-    """Распознает и извлекает русский текст из PDF-файла или картинки-скана в памяти."""
     ext = file_path.suffix.lower()
     text = ""
 
     try:
         if ext == ".pdf":
-            # Открываем PDF в памяти через PyMuPDF (супербыстро)
             doc = fitz.open(file_path)
-
-            # 1. Пробуем извлечь векторный текст напрямую
             for page in doc:
                 text += page.get_text() or ""
 
-                # 2. Если векторного текста нет, рендерим первую страницу в картинку и шлем в EasyOCR
-                if not text.strip() and len(doc) > 0:
-                    page = doc[0]
-                    pix = page.get_pixmap(dpi=150)
-                    img_bytes = pix.tobytes("png")
-
-                    reader = get_ocr_reader()
-                    results = reader.readtext(img_bytes)
-                    text = "\n".join([res[1] for res in results])  # Склеиваем по строкам
+            if not text.strip() and len(doc) > 0:
+                page = doc[0]
+                pix = page.get_pixmap(dpi=150)
+                img_bytes = pix.tobytes("png")
+                img = Image.open(io.BytesIO(img_bytes))
+                text = pytesseract.image_to_string(img, lang="rus")
 
         elif ext in (".jpg", ".jpeg", ".png"):
-            # Читаем картинку через EasyOCR напрямую
             img = Image.open(file_path).convert('RGB')
-            img_array = np.array(img)
-
-            reader = get_ocr_reader()
-            results = reader.readtext(img_array)
-            text = "\n".join([res[1] for res in results])  # Склеиваем по строкам
-
+            text = pytesseract.image_to_string(img, lang="rus")
 
     except Exception as e:
-        logger.warning(f"Ошибка оптического распознавания файла {file_path.name}: {e}")
+        logger.warning(f"Ошибка распознавания файла {file_path.name}: {e}")
 
     return text
 
 
-def classify_page_text(text: str) -> Optional[int]:
-    """Определяет тип страницы скана по ключевым маркерам текста."""
-    t = text.lower()
+def find_best_match_sliding_window(ocr_text: str, plan_disciplines: List[str]) -> Tuple[Optional[str], float]:
+    cleaned_ocr = clean_text_strict(ocr_text)
+    ocr_words = cleaned_ocr.split()
 
-    # Страница 3: Лист согласования
-    if any(x in t for x in ["лист согласования", "согласована на ведение", "учебный год", "подпись и дата"]):
-        return 3
+    if not ocr_words:
+        return None, 0.0
 
-    # Страница 2: Составители
-    if any(x in t for x in ["составитель", "разработчик", "составители", "разработчики", "ф.и.о. (полностью)"]):
-        return 2
-
-    # Страница 1: Титульный лист
-    if any(x in t for x in ["рабочая программа", "утверждаю", "направление подготовки", "направленность"]):
-        return 1
-
-    return None
-
-
-def match_discipline_from_text(text: str, plan_disciplines: List[str]) -> Optional[str]:
-    """Находит наиболее подходящую дисциплину, сравнивая её построчно
-
-    с распознанным текстом скана с помощью коэффициента Сёренсена-Диса.
-    """
-    # Выводим распознанный текст построчно в лог для отладки
-    raw_lines = [line.strip() for line in text.split('\n') if line.strip()]
-    logger.info("Распознанный текст на странице:")
-    for line in raw_lines:
-        logger.info(f"  | {line}")
-
-    # Очищаем строки текста от пробелов и дефисов
-    lines_clean = [clean_name_for_match(line) for line in raw_lines if len(line.strip()) > 3]
-    if not lines_clean:
-        return None
+    if "итогов" in cleaned_ocr and "аттестац" in cleaned_ocr or \
+       "выпускн" in cleaned_ocr and "квалификацион" in cleaned_ocr:
+        for disc in plan_disciplines:
+            dl = clean_text_strict(disc)
+            if any(kw in dl for kw in ["выпускн", "квалификацион", "вкр", "защит", "аттестац", "гиа"]):
+                return disc, 1.0
 
     best_match = None
-    max_similarity = 0.0
+    max_ratio = 0.0
 
     for disc in plan_disciplines:
-        disc_clean = clean_name_for_match(disc)
-        if not disc_clean:
+        cleaned_disc = clean_text_strict(disc)
+        disc_words = cleaned_disc.split()
+        n_words = len(disc_words)
+
+        if n_words == 0:
             continue
 
-        # Сравниваем эталонное название дисциплины с каждой строкой скана по отдельности
-        for line in lines_clean:
-            sim = dice_similarity(disc_clean, line)
-            if sim > max_similarity:
-                max_similarity = sim
-                best_match = disc
+        window_sizes = set([max(1, n_words - 1), n_words, n_words + 1])
+        disc_max_ratio = 0.0
 
-    if best_match:
-        logger.info(f"  -> Лучший кандидат: '{best_match}' (построчное сходство: {max_similarity:.1%})")
+        for w_size in window_sizes:
+            for i in range(len(ocr_words) - w_size + 1):
+                window_text = " ".join(ocr_words[i:i + w_size])
+                ratio = difflib.SequenceMatcher(None, cleaned_disc, window_text).ratio()
 
-    # Увеличиваем порог уверенности до 70% (для построчного сравнения это очень надежно)
-    if max_similarity >= 0.70:
-        return best_match
+                if ratio > disc_max_ratio:
+                    disc_max_ratio = ratio
 
-    return None
+        if disc_max_ratio > max_ratio:
+            max_ratio = disc_max_ratio
+            best_match = disc
+
+    return best_match, max_ratio
 
 
 class ScanRenamer:
-    """Класс группировки и переименования сканов РП по тройкам."""
 
     def __init__(self, scans_dir: str, excel_path: str):
         self.scans_dir = Path(scans_dir)
@@ -252,70 +195,111 @@ class ScanRenamer:
         plan_disciplines = load_disciplines_from_excel(self.excel_path)
         logger.info(f"Загружено дисциплин: {len(plan_disciplines)}")
 
-        # Собираем все поддерживаемые файлы сканов и сортируем их по имени
         valid_extensions = {".jpg", ".jpeg", ".png", ".pdf"}
         files = sorted([
             f for f in self.scans_dir.iterdir()
             if f.suffix.lower() in valid_extensions and not f.name.startswith("~$")
         ])
 
-        logger.info(f"Найдено файлов для анализа: {len(files)}")
+        triples = [files[i:i + 3] for i in range(0, len(files), 3)]
 
-        current_discipline_abbr = None
-        updated_count = 0
+        logger.info("\n=== ЭТАП 1: Анализ текста сканов ===")
+        group_results = []
 
-        for file_path in files:
-            logger.info(f"Анализ файла '{file_path.name}'...")
-            text = extract_text_from_file(file_path)
-            page_type = classify_page_text(text)
-
-            if page_type == 1:
-                # Нашли новый титульный лист
-                matched_disc = match_discipline_from_text(text, plan_disciplines)
-                if matched_disc:
-                    current_discipline_abbr = abbreviate_discipline(matched_disc)
-                    logger.info(f"  -> Распознана дисциплина: '{matched_disc}' ({current_discipline_abbr})")
-                else:
-                    current_discipline_abbr = "НеизвестнаяДисциплина"
-                    logger.warning("  -> [!] Не удалось надежно сопоставить дисциплину по тексту титульного листа.")
-
-                new_name = f"{current_discipline_abbr}1{file_path.suffix}"
-
-            elif page_type == 2:
-                # Лист составителей
-                if not current_discipline_abbr:
-                    current_discipline_abbr = "ПропущенТитул"
-                new_name = f"{current_discipline_abbr}2{file_path.suffix}"
-
-            elif page_type == 3:
-                # Лист согласования
-                if not current_discipline_abbr:
-                    current_discipline_abbr = "ПропущенТитул"
-                new_name = f"{current_discipline_abbr}3{file_path.suffix}"
-
-            else:
-                logger.warning("  -> [!] Не удалось классифицировать тип страницы.")
+        for idx, group in enumerate(triples, 1):
+            if len(group) < 3:
                 continue
 
-            # Переименование с обходом конфликтов имен
-            new_path = file_path.with_name(new_name)
-            counter = 1
-            while new_path.exists():
-                stem = Path(new_name).stem
-                new_path = file_path.with_name(f"{stem}_{counter}{file_path.suffix}")
-                counter += 1
+            file_names = ", ".join([f.name for f in group])
+            logger.info(f"\n--- Анализ группы сканов №{idx} ({file_names}) ---")
 
-            file_path.rename(new_path)
-            logger.info(f"  [+] Успешно переименован: '{file_path.name}' -> '{new_path.name}'")
-            updated_count += 1
+            best_group_match = None
+            highest_confidence = 0.0
+
+            for file_path in group:
+                logger.info(f"  Читаем файл: {file_path.name}...")
+                text = extract_text_from_file(file_path)
+
+                matched_disc, confidence = find_best_match_sliding_window(text, plan_disciplines)
+
+                if matched_disc and confidence > highest_confidence:
+                    highest_confidence = confidence
+                    best_group_match = matched_disc
+
+                if highest_confidence >= 0.90:
+                    logger.info(f"  [+] Найдено уверенное совпадение: '{best_group_match}' ({highest_confidence:.1%})")
+                    break
+
+            group_results.append({
+                'idx': idx,
+                'files': group,
+                'match': best_group_match if highest_confidence >= 0.70 else None,
+                'conf': highest_confidence
+            })
+
+        logger.info("\n=== ЭТАП 2: Разрешение конфликтов и дубликатов ===")
+        claims = {}
+        for res in group_results:
+            if res['match']:
+                claims.setdefault(res['match'], []).append(res)
+
+        for disc, claiming_groups in claims.items():
+            if len(claiming_groups) > 1:
+                claiming_groups.sort(key=lambda x: x['conf'], reverse=True)
+                winner = claiming_groups[0]
+
+                logger.warning(f"[!] Конфликт для '{disc}': претендуют {len(claiming_groups)} группы.")
+                logger.info(f"    -> Победитель: Группа №{winner['idx']} (уверенность {winner['conf']:.1%})")
+
+                for loser in claiming_groups[1:]:
+                    logger.warning(f"    -> Сброс группы №{loser['idx']} (уверенность была {loser['conf']:.1%}) до 'Неизвестная'.")
+                    loser['match'] = None
+                    loser['conf'] = 0.0
+
+        logger.info("\n=== ЭТАП 3: Переименование файлов ===")
+        updated_count = 0
+
+        for res in group_results:
+            idx = res['idx']
+            group = res['files']
+            match = res['match']
+
+            if match:
+                current_discipline_abbr = abbreviate_discipline(match)
+                logger.info(f"  [+] Группа №{idx} утверждена: '{match}' -> префикс ({current_discipline_abbr})")
+            else:
+                current_discipline_abbr = f"НеизвестнаяДисциплинаГруппа{idx}"
+                logger.warning(f"  [-] Группа №{idx} не распознана. Присвоено тех. имя: {current_discipline_abbr}")
+
+            for page_num, file_path in enumerate(group, 1):
+                new_name = f"{current_discipline_abbr}{page_num}{file_path.suffix}"
+                new_path = file_path.with_name(new_name)
+
+                counter = 1
+                while new_path.exists():
+                    stem = Path(new_name).stem
+                    new_path = file_path.with_name(f"{stem}_{counter}{file_path.suffix}")
+                    counter += 1
+
+                try:
+                    file_path.rename(new_path)
+                    logger.info(f"      Переименован: '{file_path.name}' -> '{new_path.name}'")
+                    updated_count += 1
+                except Exception as e:
+                    logger.error(f"      [!] Ошибка переименования '{file_path.name}': {e}")
 
         print(f"\n[Готово] Обработка сканов завершена. Успешно переименовано файлов: {updated_count}")
 
 
 def main():
     print("=== Интеллектуальное переименование сканов РП ===")
-    user_scans_dir = input("Шаг 1. Введите путь к папке со сканами РП (картинки/pdf): ").strip().strip('"')
-    user_excel_path = input("Шаг 2. Введите путь к файлу учебного плана Excel (plan.xlsx): ").strip().strip('"')
+    try:
+        user_scans_dir = input("Шаг 1. Введите путь к папке со сканами РП (картинки/pdf): ").strip().strip('"')
+        user_excel_path = input("Шаг 2. Введите путь к файлу учебного плана Excel (plan.xlsx): ").strip().strip('"')
+    except UnicodeDecodeError:
+        print("Ошибка кодировки консоли! Используются пути по умолчанию (.) и (plan.xlsx).")
+        user_scans_dir = "."
+        user_excel_path = "plan.xlsx"
 
     if not user_scans_dir:
         user_scans_dir = "."

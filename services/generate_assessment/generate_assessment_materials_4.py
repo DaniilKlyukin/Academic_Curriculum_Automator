@@ -12,15 +12,56 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
-# Попытка импорта официальной библиотеки Google AI
+# Импорт нового официального SDK Google GenAI
 try:
-    import google.generativeai as genai
-
+    from google import genai
+    from google.genai import types
     HAS_GEMINI = True
 except ImportError:
     HAS_GEMINI = False
 
 logger = logging.getLogger(__name__)
+
+if HAS_GEMINI:
+    TestSchema = types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "test_questions": types.Schema(
+                type=types.Type.ARRAY,
+                description="Список из ровно 5 вопросов теста",
+                items=types.Schema(
+                    type=types.Type.OBJECT,
+                    properties={
+                        "number": types.Schema(
+                            type=types.Type.INTEGER,
+                            description="Порядковый номер вопроса, строго от 1 до 5"
+                        ),
+                        "question": types.Schema(
+                            type=types.Type.STRING,
+                            description="Текст вопроса, сформулированный в профессиональном стиле"
+                        ),
+                        "options": types.Schema(
+                            type=types.Type.OBJECT,
+                            description="Словарь вариантов ответов с ключами 'а', 'б', 'в', 'г'",
+                            properties={
+                                "а": types.Schema(type=types.Type.STRING),
+                                "б": types.Schema(type=types.Type.STRING),
+                                "в": types.Schema(type=types.Type.STRING),
+                                "г": types.Schema(type=types.Type.STRING),
+                            },
+                            required=["а", "б", "в", "г"]
+                        ),
+                        "correct_option": types.Schema(
+                            type=types.Type.STRING,
+                            description="Ключ правильного ответа (строго одна русская буква: 'а', 'б', 'в' или 'г')"
+                        )
+                    },
+                    required=["number", "question", "options", "correct_option"]
+                )
+            )
+        },
+        required=["test_questions"]
+    )
 
 
 class RateLimiter:
@@ -177,10 +218,14 @@ def find_test_elements(doc: Document) -> tuple[list[Any], bool]:
     return test_elements, True
 
 
-def generate_test_via_ai(subject_name: str, competency_text: str, api_key: str, rate_limiter: RateLimiter, direction: str = "", retries: int = 3) -> Optional[dict]:
-    """Запрашивает генерацию вопросов теста через API Gemini с поддержкой повторных попыток (retries)."""
+def generate_test_via_ai(subject_name: str, competency_text: str, api_key: str, rate_limiter: RateLimiter,
+                         direction: str = "", retries: int = 3) -> Optional[dict]:
+    """Запрашивает генерацию вопросов теста через API Gemini (SDK google-genai)
+
+    с гарантированной валидацией схемы JSON (response_schema) и поддержкой ретраев.
+    """
     if not HAS_GEMINI:
-        logger.error("Библиотека google-generativeai не установлена. Выполните: pip install google-generativeai")
+        logger.error("Библиотека google-genai не установлена. Выполните: pip install google-genai")
         return None
 
     # Жесткое ограничение на упоминание метаданных компетенций в тестах
@@ -191,88 +236,58 @@ def generate_test_via_ai(subject_name: str, competency_text: str, api_key: str, 
 
     # Требование к грамотному, но не избыточно официальному стилю
     style_instruction = (
-        "Стиль написания вопросов: используйте четкий, грамотный и профессиональный язык. Избегайте избыточного академизма, "
-        "канцеляризмов, слишком длинных и сложных предложений. Формулировки должны быть лаконичными, ясными и понятными "
-        "для студентов, но при этом академически корректными. Не используйте пассивный залог там, где можно обойтись активным "
-        "Стремитесь к естественности и точности формулировок."
+        "Стиль написания вопросов: используйте лаконичный, грамотный и профессиональный язык. Избегайте избыточного академизма, "
+        "канцеляризмов, сложных деепричастных оборотов и пассивного залога. Формулировки должны быть ясными, точными "
+        "и понятными для студентов, но при этом академически строгими."
     )
 
-    # Формирование промпта в зависимости от контекста (Раздел 2 или Раздел 3)
+    # Динамическое определение контекста и требований к содержанию
     if not subject_name:
-        # Для Раздела 3 (варианты диагностической работы без привязки к конкретному предмету)
-        subject_context = f"общего междисциплинарного оценочного средства по направлению подготовки «{direction}»" if direction else "общего междисциплинарного оценочного средства"
-        prompt = f"""Вы — опытный преподаватель вуза, способный четко и грамотно формулировать задания. 
-Сгенерируйте качественный академический тест из 5 вопросов для студентов в рамках {subject_context}.
-
-Компетенция (используйте ее исключительно как тематический ориентир для подбора вопросов, но не упоминайте в тексте): {competency_text}
-
-Требования к тесту:
-1. Ровно 5 вопросов множественного выбора. Вопросы должны оценивать общее междисциплинарное понимание и практическое применение данной компетенции во всей профессиональной области {f'«{direction}»' if direction else ''}.
-2. {avoid_metadata_instruction}
-3. {style_instruction}
-4. Для каждого вопроса должно быть ровно 4 варианта ответа (маркированные русскими строчными буквами: а, б, в, г).
-5. Вопросы должны быть содержательными, концептуальными и высокоуровневыми.
-6. Ответ должен быть СТРОГО в формате JSON, без какого-либо окружающего текста, комментариев или разметки. Схема JSON:
-{{
-  "test_questions": [
-    {{
-      "number": 1,
-      "question": "Текст вопроса...",
-      "options": {{
-        "а": "Текст варианта а",
-        "б": "Текст варианта б",
-        "в": "Текст варианта в",
-        "г": "Текст варианта г"
-      }},
-      "correct_option": "а"
-    }}
-  ]
-}}
-Верните исключительно валидный JSON.
-"""
+        # Для Раздела 3 (междисциплинарный диагностический вариант)
+        context_description = f"общего междисциплинарного оценочного средства по направлению подготовки «{direction}»" if direction else "общего междисциплинарного оценочного средства"
+        context_requirement = f"Вопросы должны оценивать общее междисциплинарное понимание и практическое применение данной компетенции во всей профессиональной области «{direction}»." if direction else "Вопросы должны оценивать общее понимание и практическое применение данной компетенции в профессиональной деятельности."
     else:
         # Для Раздела 2 (конкретная дисциплина или практика)
-        prompt = f"""Вы — опытный преподаватель вуза, способный четко и грамотно формулировать задания. 
-Сгенерируйте качественный академический тест из 5 вопросов для студентов по дисциплине.
+        context_description = f"изучения конкретной дисциплины/практики: «{subject_name}»"
+        context_requirement = f"Вопросы должны напрямую соотноситься со спецификой указанной компетенции и предметной областью дисциплины/практики «{subject_name}»."
 
-Дисциплина/Практика: {subject_name}
+    # Единый компактный промпт-шаблон
+    prompt = f"""Вы — опытный преподаватель вуза, способный четко и грамотно формулировать задания. 
+Сгенерируйте качественный академический тест из 5 вопросов для студентов в рамках {context_description}.
+
 Компетенция (используйте ее исключительно как тематический ориентир для подбора вопросов, но не упоминайте в тексте): {competency_text}
 
 Требования к тесту:
 1. Ровно 5 вопросов множественного выбора.
-2. {avoid_metadata_instruction}
-3. {style_instruction}
-4. Для каждого вопроса должно быть ровно 4 варианта ответа (маркированные русскими строчными буквами: а, б, в, г).
-5. Вопросы должны быть содержательными и напрямую соотноситься со спецификой указанной компетенции и предмета.
-6. Ответ должен быть СТРОГО в формате JSON, без какого-либо окружающего текста, комментариев или разметки. Схема JSON:
-{{
-  "test_questions": [
-    {{
-      "number": 1,
-      "question": "Текст вопроса...",
-      "options": {{
-        "а": "Текст варианта а",
-        "б": "Текст варианта б",
-        "в": "Текст варианта в",
-        "г": "Текст варианта г"
-      }},
-      "correct_option": "а"
-    }}
-  ]
-}}
-Верните исключительно валидный JSON.
+2. {context_requirement}
+3. {avoid_metadata_instruction}
+4. {style_instruction}
+5. Варианты ответов должны быть привязаны к ключам 'а', 'б', 'в', 'г'.
 """
 
     for attempt in range(1, retries + 1):
         rate_limiter.wait()
         try:
-            genai.configure(api_key=api_key)
-            model_name = "gemini-3.1-flash-lite-preview" #"gemini-3.1-flash-lite-preview"
-            model = genai.GenerativeModel(
-                model_name,
-                generation_config={"response_mime_type": "application/json"}
+            # Инициализация нового клиента
+            client = genai.Client(api_key=api_key)
+            model_name = "gemini-3.1-flash-lite-preview"
+
+            # Настройка конфигурации с использованием нативной схемы
+            config_args = {
+                "response_mime_type": "application/json",
+                "temperature": 0.5  # Оптимальный баланс разнообразия формулировок
+            }
+            if HAS_GEMINI:
+                config_args["response_schema"] = TestSchema
+
+            config = types.GenerateContentConfig(**config_args)
+
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config=config
             )
-            response = model.generate_content(prompt)
+
             text_response = response.text.strip()
 
             if text_response.startswith("```json"):
@@ -286,7 +301,8 @@ def generate_test_via_ai(subject_name: str, competency_text: str, api_key: str, 
             data = json.loads(text_response)
             return data
         except Exception as e:
-            logger.warning(f"Попытка {attempt}/{retries} генерации теста завершилась ошибкой для '{subject_name or 'Раздел 3'}' (Компетенция: {competency_text[:40]}): {e}")
+            logger.warning(
+                f"Попытка {attempt}/{retries} генерации теста завершилась ошибкой для '{subject_name or 'Раздел 3'}' (Компетенция: {competency_text[:40]}): {e}")
             if attempt < retries:
                 time.sleep(3)  # Небольшая пауза перед следующей попыткой
             else:
@@ -446,28 +462,29 @@ class CompetencyReportGenerator:
             logger.error(f"Не удалось открыть документ: {e}")
             return
 
-        rp_folder = Path(self.rp_folder_path)
-        rp_map: Dict[str, Path] = {}
+            # Инициализация пути к папке РП (производится безопасно)
+            rp_folder = Path(self.rp_folder_path) if self.rp_folder_path else None
+            rp_map: Dict[str, Path] = {}
 
-        # Сканирование файлов РП производится только при использовании смешанного или оригинального режимов
-        if self.ai_mode in [2, 3]:
-            if rp_folder.exists():
-                logger.info("Сканирование папки с Рабочими Программами...")
-                for docx_path in rp_folder.glob("*.docx"):
-                    if docx_path.name.startswith("~$"):
-                        continue
-                    try:
-                        rp_doc = Document(docx_path)
-                        title = get_rp_title(rp_doc)
-                        if title:
-                            cleaned_title = clean_name_for_match(title)
-                            rp_map[cleaned_title] = docx_path
-                            logger.info(f"  -> Найдена РП: '{title}' ({docx_path.name})")
-                    except Exception as e:
-                        logger.warning(f"Не удалось прочитать файл РП {docx_path.name}: {e}")
-                logger.info(f"Успешно проиндексировано РП: {len(rp_map)}")
-            else:
-                logger.warning(f"Папка с РП не найдена по пути: {self.rp_folder_path}")
+            # Сканирование файлов РП производится только при использовании смешанного или оригинального режимов
+            if self.ai_mode in [2, 3] and rp_folder:
+                if rp_folder.exists():
+                    logger.info("Сканирование папки с Рабочими Программами...")
+                    for docx_path in rp_folder.glob("*.docx"):
+                        if docx_path.name.startswith("~$"):
+                            continue
+                        try:
+                            rp_doc = Document(docx_path)
+                            title = get_rp_title(rp_doc)
+                            if title:
+                                cleaned_title = clean_name_for_match(title)
+                                rp_map[cleaned_title] = docx_path
+                                logger.info(f"  -> Найдена РП: '{title}' ({docx_path.name})")
+                        except Exception as e:
+                            logger.warning(f"Не удалось прочитать файл РП {docx_path.name}: {e}")
+                    logger.info(f"Успешно проиндексировано РП: {len(rp_map)}")
+                else:
+                    logger.warning(f"Папка с РП не найдена по пути: {self.rp_folder_path}")
 
         logger.info("Интеграция тестов в структуру документа...")
         subject_pattern = re.compile(r'^(Дисциплина|Практика)\s+«(.*?)»')

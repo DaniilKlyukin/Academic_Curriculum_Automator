@@ -14,7 +14,6 @@ def main():
 
     user_excel_path: str = input("Шаг 1. Введите путь к исходному файлу Excel (например, plan.xlsx): ").strip()
     user_folder_path: str = input("Шаг 2. Введите путь к папке для сохранения документа Word (например, C:\\Reports): ").strip()
-    user_rp_folder: str = input("Шаг 3. Введите путь к папке с файлами Рабочих Программ (РП): ").strip()
 
     if not user_excel_path:
         user_excel_path = "plan.xlsx"
@@ -24,20 +23,29 @@ def main():
         user_folder_path = "."
         print(f"Используется текущая рабочая папка по умолчанию: {Path(user_folder_path).absolute()}")
 
-    # Настройка параметров ИИ-генерации для Шага 4
-    print("\nШаг 4. Настройка режима интеграции тестов (ИИ):")
-    print("  1 — Полный ИИ (все тесты генерируются ИИ, файлы РП игнорируются)")
-    print("  2 — Смешанный (тесты берутся из РП; если не найдено — генерируются ИИ)")
+    # Шаг 3. Настройка режима интеграции тестов (ИИ)
+    print("\nШаг 3. Настройка режима интеграции тестов (ИИ):")
+    print("  1 — Полный ИИ (все тесты генерируются ИИ, файлы РП не требуются)")
+    print("  2 — Смешанный (тесты берутся из РП; при отсутствии — генерируются ИИ)")
     print("  3 — Без ИИ (оригинальное поведение: тесты только из РП, иначе заглушки)")
     ai_mode_input = input("Выберите режим [По умолчанию: 3]: ").strip()
     ai_mode = int(ai_mode_input) if ai_mode_input in ["1", "2", "3"] else 3
 
+    # Запрашиваем путь к РП только если выбран смешанный (2) или оригинальный (3) режим
+    user_rp_folder = ""
+    if ai_mode in [2, 3]:
+        user_rp_folder = input("Шаг 4. Введите путь к папке с файлами Рабочих Программ (РП): ").strip()
+        if not user_rp_folder:
+            user_rp_folder = "."
+            print(f"Используется текущая рабочая папка по умолчанию для РП: {Path(user_rp_folder).absolute()}")
+
+    # Настройка API-ключа и лимитов только если выбран режим 1 или 2
     api_key = ""
     rpm_limit = 15
     if ai_mode in [1, 2]:
         api_key = os.environ.get("GEMINI_API_KEY", "").strip()
         if not api_key:
-            api_key = input("Введите ваш API-ключ Gemini (или оставьте пустым, если задан в GEMINI_API_KEY): ").strip()
+            api_key = input("Введите ваш API-ключ Gemini (или оставьте пустым при наличии системной переменной): ").strip()
             if not api_key:
                 api_key = os.environ.get("GEMINI_API_KEY", "").strip()
 

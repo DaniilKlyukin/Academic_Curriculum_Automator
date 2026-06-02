@@ -275,7 +275,7 @@ def generate_test_via_ai(subject_name: str, competency_text: str, api_key: str, 
             # Настройка конфигурации с использованием нативной схемы
             config_args = {
                 "response_mime_type": "application/json",
-                "temperature": 0.5  # Оптимальный баланс разнообразия формулировок
+                "temperature": 0.4  # Оптимальный баланс разнообразия формулировок
             }
             if HAS_GEMINI:
                 config_args["response_schema"] = TestSchema

@@ -15,6 +15,9 @@ from services.signature_processor import main as run_signature_update
 from services.structure_exporter import main as run_structure_exporter
 from services.generate_assessment.generate_assessment_materials import main as generate_assessment_materials
 from services.image_service import ImageToPDFService
+from services.rp_generator.rp_personnel_extractor import main as run_rp_personnel_extractor
+from services.rp_generator.rp_academic_parser import main as run_rp_academic_parser
+from services.rp_generator.rp_competency_mapper import main as run_rp_competency_mapper
 
 logging.basicConfig(
     filename='app_errors.log',
@@ -84,6 +87,10 @@ def main() -> None:
 
         # Группа 7: Служебные утилиты
         "14": ("Экспорт структуры папок проекта для передачи в ИИ", run_structure_exporter),
+
+        "15": ("[РП Модуль] Извлечение кадров из старых РП", run_rp_personnel_extractor),
+        "16": ("[РП Модуль] Парсинг учебных нагрузок и часов (План)", run_rp_academic_parser),
+        "17": ("[РП Модуль] Разбор связей предметов и компетенций", run_rp_competency_mapper),
     }
 
     while True:

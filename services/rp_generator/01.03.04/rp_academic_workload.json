@@ -8,8 +8,8 @@
     "fgos_standard": "№ 11 от 10.01.2018",
     "faculty": "Математика и естественные науки",
     "department": "Прикладная математика и информационные технологии",
-    "direction_code": "",
-    "direction_name": "",
+    "direction_code": "01.03.04",
+    "direction_name": "Прикладная математика",
     "profile": "Применение математических методов и программных средств для решения инженерных и экономических задач"
   },
   "disciplines": {
@@ -45,7 +45,13 @@
           "lectures": 80,
           "laboratory_works": 0,
           "practical_classes": 36,
-          "self_study": 26
+          "self_study": 26,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -81,7 +87,13 @@
           "lectures": 16,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 38
+          "self_study": 38,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -119,13 +131,25 @@
           "lectures": 0,
           "laboratory_works": 32,
           "practical_classes": 0,
-          "self_study": 38
+          "self_study": 38,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         },
         "2": {
           "lectures": 0,
           "laboratory_works": 32,
           "practical_classes": 0,
-          "self_study": 40
+          "self_study": 40,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         }
       }
     },
@@ -161,7 +185,13 @@
           "lectures": 16,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 60
+          "self_study": 60,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         }
       }
     },
@@ -197,7 +227,13 @@
           "lectures": 32,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 58
+          "self_study": 58,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -233,7 +269,13 @@
           "lectures": 16,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 38
+          "self_study": 38,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -269,7 +311,13 @@
           "lectures": 32,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 58
+          "self_study": 58,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -307,19 +355,37 @@
           "lectures": 48,
           "laboratory_works": 0,
           "practical_classes": 48,
-          "self_study": 84
+          "self_study": 84,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         },
         "2": {
           "lectures": 32,
           "laboratory_works": 0,
           "practical_classes": 48,
-          "self_study": 64
+          "self_study": 64,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         },
         "3": {
           "lectures": 48,
           "laboratory_works": 0,
           "practical_classes": 48,
-          "self_study": 84
+          "self_study": 84,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         }
       }
     },
@@ -357,13 +423,25 @@
           "lectures": 32,
           "laboratory_works": 0,
           "practical_classes": 48,
-          "self_study": 98
+          "self_study": 98,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         },
         "2": {
           "lectures": 32,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 80
+          "self_study": 80,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         }
       }
     },
@@ -401,13 +479,25 @@
           "lectures": 32,
           "laboratory_works": 16,
           "practical_classes": 32,
-          "self_study": 134
+          "self_study": 134,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         },
         "3": {
           "lectures": 48,
           "laboratory_works": 16,
           "practical_classes": 32,
-          "self_study": 84
+          "self_study": 84,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         }
       }
     },
@@ -446,19 +536,37 @@
           "lectures": 16,
           "laboratory_works": 16,
           "practical_classes": 16,
-          "self_study": 60
+          "self_study": 60,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         },
         "2": {
           "lectures": 16,
           "laboratory_works": 16,
           "practical_classes": 16,
-          "self_study": 58
+          "self_study": 58,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         },
         "3": {
           "lectures": 16,
           "laboratory_works": 16,
           "practical_classes": 16,
-          "self_study": 94
+          "self_study": 94,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -494,7 +602,13 @@
           "lectures": 32,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 58
+          "self_study": 58,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -530,7 +644,13 @@
           "lectures": 16,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 60
+          "self_study": 60,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         }
       }
     },
@@ -566,7 +686,13 @@
           "lectures": 16,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 38
+          "self_study": 38,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -602,7 +728,13 @@
           "lectures": 32,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 60
+          "self_study": 60,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         }
       }
     },
@@ -638,7 +770,13 @@
           "lectures": 16,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 58
+          "self_study": 58,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -674,7 +812,13 @@
           "lectures": 16,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 38
+          "self_study": 38,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -712,13 +856,25 @@
           "lectures": 16,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 38
+          "self_study": 38,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         },
         "5": {
           "lectures": 16,
           "laboratory_works": 16,
           "practical_classes": 16,
-          "self_study": 58
+          "self_study": 58,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -754,7 +910,13 @@
           "lectures": 16,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 24
+          "self_study": 24,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         }
       }
     },
@@ -790,7 +952,13 @@
           "lectures": 32,
           "laboratory_works": 16,
           "practical_classes": 0,
-          "self_study": 60
+          "self_study": 60,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         }
       }
     },
@@ -826,7 +994,13 @@
           "lectures": 32,
           "laboratory_works": 16,
           "practical_classes": 0,
-          "self_study": 60
+          "self_study": 60,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         }
       }
     },
@@ -862,7 +1036,13 @@
           "lectures": 24,
           "laboratory_works": 0,
           "practical_classes": 12,
-          "self_study": 70
+          "self_study": 70,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -898,7 +1078,13 @@
           "lectures": 24,
           "laboratory_works": 0,
           "practical_classes": 8,
-          "self_study": 38
+          "self_study": 38,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -936,13 +1122,25 @@
           "lectures": 16,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 38
+          "self_study": 38,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         },
         "7": {
           "lectures": 32,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 60
+          "self_study": 60,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         }
       }
     },
@@ -978,7 +1176,13 @@
           "lectures": 32,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 58
+          "self_study": 58,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1016,13 +1220,25 @@
           "lectures": 16,
           "laboratory_works": 16,
           "practical_classes": 0,
-          "self_study": 76
+          "self_study": 76,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         },
         "8": {
           "lectures": 24,
           "laboratory_works": 24,
           "practical_classes": 0,
-          "self_study": 58
+          "self_study": 58,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1058,7 +1274,13 @@
           "lectures": 12,
           "laboratory_works": 24,
           "practical_classes": 0,
-          "self_study": 70
+          "self_study": 70,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1094,7 +1316,13 @@
           "lectures": 32,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 58
+          "self_study": 58,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1130,7 +1358,13 @@
           "lectures": 16,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 40
+          "self_study": 40,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         }
       }
     },
@@ -1166,7 +1400,13 @@
           "lectures": 16,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 38
+          "self_study": 38,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1205,7 +1445,13 @@
           "lectures": 16,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 38
+          "self_study": 38,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1244,7 +1490,13 @@
           "lectures": 16,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 38
+          "self_study": 38,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1282,7 +1534,13 @@
           "lectures": 16,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 37
+          "self_study": 37,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1320,7 +1578,13 @@
           "lectures": 24,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 99
+          "self_study": 99,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1356,7 +1620,13 @@
           "lectures": 16,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 74
+          "self_study": 74,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1394,13 +1664,25 @@
           "lectures": 16,
           "laboratory_works": 16,
           "practical_classes": 0,
-          "self_study": 38
+          "self_study": 38,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         },
         "6": {
           "lectures": 16,
           "laboratory_works": 16,
           "practical_classes": 16,
-          "self_study": 94
+          "self_study": 94,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1436,7 +1718,13 @@
           "lectures": 16,
           "laboratory_works": 24,
           "practical_classes": 0,
-          "self_study": 66
+          "self_study": 66,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1474,7 +1762,13 @@
           "lectures": 32,
           "laboratory_works": 16,
           "practical_classes": 16,
-          "self_study": 113
+          "self_study": 113,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         }
       }
     },
@@ -1514,13 +1808,25 @@
           "lectures": 32,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 58
+          "self_study": 58,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         },
         "6": {
           "lectures": 16,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 71
+          "self_study": 71,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1556,7 +1862,13 @@
           "lectures": 16,
           "laboratory_works": 16,
           "practical_classes": 0,
-          "self_study": 40
+          "self_study": 40,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         }
       }
     },
@@ -1592,7 +1904,13 @@
           "lectures": 32,
           "laboratory_works": 16,
           "practical_classes": 16,
-          "self_study": 78
+          "self_study": 78,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1628,7 +1946,13 @@
           "lectures": 16,
           "laboratory_works": 16,
           "practical_classes": 32,
-          "self_study": 44
+          "self_study": 44,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         }
       }
     },
@@ -1666,7 +1990,13 @@
           "lectures": 16,
           "laboratory_works": 16,
           "practical_classes": 16,
-          "self_study": 91
+          "self_study": 91,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1703,13 +2033,25 @@
           "lectures": 32,
           "laboratory_works": 16,
           "practical_classes": 16,
-          "self_study": 42
+          "self_study": 42,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         },
         "8": {
           "lectures": 12,
           "laboratory_works": 12,
           "practical_classes": 24,
-          "self_study": 58
+          "self_study": 58,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1747,7 +2089,13 @@
           "lectures": 24,
           "laboratory_works": 12,
           "practical_classes": 12,
-          "self_study": 91
+          "self_study": 91,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1783,7 +2131,13 @@
           "lectures": 24,
           "laboratory_works": 0,
           "practical_classes": 12,
-          "self_study": 36
+          "self_study": 36,
+          "intermediate_control": {
+            "type": "Exam",
+            "kcha": 0.4,
+            "self_study": 35.6,
+            "total": 36.0
+          }
         }
       }
     },
@@ -1819,7 +2173,13 @@
           "lectures": 16,
           "laboratory_works": 16,
           "practical_classes": 0,
-          "self_study": 38
+          "self_study": 38,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1858,7 +2218,13 @@
           "lectures": 16,
           "laboratory_works": 32,
           "practical_classes": 0,
-          "self_study": 58
+          "self_study": 58,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1897,7 +2263,13 @@
           "lectures": 16,
           "laboratory_works": 32,
           "practical_classes": 0,
-          "self_study": 58
+          "self_study": 58,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1936,7 +2308,13 @@
           "lectures": 16,
           "laboratory_works": 16,
           "practical_classes": 16,
-          "self_study": 58
+          "self_study": 58,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -1975,7 +2353,13 @@
           "lectures": 16,
           "laboratory_works": 16,
           "practical_classes": 16,
-          "self_study": 58
+          "self_study": 58,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -2014,7 +2398,13 @@
           "lectures": 16,
           "laboratory_works": 16,
           "practical_classes": 0,
-          "self_study": 74
+          "self_study": 74,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -2053,7 +2443,13 @@
           "lectures": 16,
           "laboratory_works": 16,
           "practical_classes": 0,
-          "self_study": 74
+          "self_study": 74,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -2092,7 +2488,13 @@
           "lectures": 16,
           "laboratory_works": 16,
           "practical_classes": 16,
-          "self_study": 58
+          "self_study": 58,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -2131,7 +2533,13 @@
           "lectures": 16,
           "laboratory_works": 16,
           "practical_classes": 16,
-          "self_study": 58
+          "self_study": 58,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -2170,7 +2578,13 @@
           "lectures": 16,
           "laboratory_works": 16,
           "practical_classes": 16,
-          "self_study": 58
+          "self_study": 58,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -2209,7 +2623,13 @@
           "lectures": 16,
           "laboratory_works": 16,
           "practical_classes": 16,
-          "self_study": 58
+          "self_study": 58,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -2252,31 +2672,61 @@
           "lectures": 0,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 34
+          "self_study": 34,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         },
         "2": {
           "lectures": 0,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 34
+          "self_study": 34,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         },
         "3": {
           "lectures": 0,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 34
+          "self_study": 34,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         },
         "4": {
           "lectures": 0,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 34
+          "self_study": 34,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         },
         "5": {
           "lectures": 0,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 32
+          "self_study": 32,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -2319,31 +2769,61 @@
           "lectures": 0,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 34
+          "self_study": 34,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         },
         "2": {
           "lectures": 0,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 34
+          "self_study": 34,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         },
         "3": {
           "lectures": 0,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 34
+          "self_study": 34,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         },
         "4": {
           "lectures": 0,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 34
+          "self_study": 34,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         },
         "5": {
           "lectures": 0,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 32
+          "self_study": 32,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -2386,31 +2866,61 @@
           "lectures": 0,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 34
+          "self_study": 34,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         },
         "2": {
           "lectures": 0,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 34
+          "self_study": 34,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         },
         "3": {
           "lectures": 0,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 34
+          "self_study": 34,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         },
         "4": {
           "lectures": 0,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 34
+          "self_study": 34,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         },
         "5": {
           "lectures": 0,
           "laboratory_works": 0,
           "practical_classes": 32,
-          "self_study": 32
+          "self_study": 32,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -2446,7 +2956,13 @@
           "lectures": 2,
           "laboratory_works": 0,
           "practical_classes": 0,
-          "self_study": 106
+          "self_study": 106,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -2482,7 +2998,13 @@
           "lectures": 2,
           "laboratory_works": 0,
           "practical_classes": 0,
-          "self_study": 106
+          "self_study": 106,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -2518,7 +3040,13 @@
           "lectures": 2,
           "laboratory_works": 0,
           "practical_classes": 0,
-          "self_study": 214
+          "self_study": 214,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -2554,7 +3082,13 @@
           "lectures": 2,
           "laboratory_works": 0,
           "practical_classes": 0,
-          "self_study": 106
+          "self_study": 106,
+          "intermediate_control": {
+            "type": "GradedCredit",
+            "kcha": 0.4,
+            "self_study": 1.6,
+            "total": 2.0
+          }
         }
       }
     },
@@ -2588,7 +3122,8 @@
           "lectures": 0,
           "laboratory_works": 0,
           "practical_classes": 15,
-          "self_study": 309
+          "self_study": 309,
+          "intermediate_control": null
         }
       }
     },
@@ -2624,7 +3159,13 @@
           "lectures": 8,
           "laboratory_works": 0,
           "practical_classes": 8,
-          "self_study": 90
+          "self_study": 90,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -2660,7 +3201,13 @@
           "lectures": 8,
           "laboratory_works": 0,
           "practical_classes": 8,
-          "self_study": 90
+          "self_study": 90,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     },
@@ -2696,7 +3243,13 @@
           "lectures": 16,
           "laboratory_works": 0,
           "practical_classes": 16,
-          "self_study": 38
+          "self_study": 38,
+          "intermediate_control": {
+            "type": "Credit",
+            "kcha": 0.3,
+            "self_study": 1.7,
+            "total": 2.0
+          }
         }
       }
     }

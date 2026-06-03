@@ -60,6 +60,16 @@ INITIALS_PATTERN = re.compile(
     r'(?:[А-Я]\s*\.\s*[А-Я]\s*\.\s*[А-Я][а-я]+|[А-Я][а-я]+\s+[А-Я]\s*\.\s*[А-Я]\s*\.)'
 )
 
+# Скорректированный паттерн для поиска ФИО без жесткой привязки \b к символу точки в конце инициалов
+FIO_REGEX = re.compile(
+    r'(?:'
+    r'\b[А-Я][а-я]+(?:-[А-Я][а-я]+)?\s+[А-Я]\s*\.\s*[А-Я]\s*\.?|'  # Фамилия И.О.
+    r'\b[А-Я]\s*\.\s*[А-Я]\s*\.?\s*[А-Я][а-я]+(?:-[А-Я][а-я]+)?\b|'  # И.О. Фамилия
+    r'\b[А-Я][а-я]+(?:-[А-Я][а-я]+)?\s+[А-Я][а-я]+\s+[А-Я][а-я]+\b|'  # ... Имя Отчество
+    r'\b[А-Я][а-я]+(?:-[А-Я][а-я]+)?\s+[А-Я][а-я]+\b'  # Фамилия Имя
+    r')'
+)
+
 
 def clean_text(text: str) -> str:
     if not text:
@@ -69,11 +79,64 @@ def clean_text(text: str) -> str:
     return s
 
 
+def is_placeholder_name(name_str: str) -> bool:
+    """Определяет, является ли переданная строка шаблонной заглушкой (например, 'И.О. Фамилия')."""
+    norm = name_str.lower().strip()
+    if "фамилия" in norm:
+        return True
+    if "имя" in norm or "отчество" in norm:
+        return True
+    if re.match(r'^[ио\s\._/\\]+$', norm):
+        return True
+    return False
+
+
+def standardize_initials_name(name_str: str) -> str:
+    """Приводит инициалы к единообразному формату 'И.О. Фамилия'."""
+    name_str = clean_text(name_str)
+
+    # Сценарий 1: Фамилия И.О. -> И.О. Фамилия
+    pattern_surname_first = re.compile(
+        r'^([А-Я][а-я]+(?:-[А-Я][а-я]+)?)\s+([А-Я]\s*\.\s*[А-Я]\s*\.?)$'
+    )
+    m1 = pattern_surname_first.match(name_str)
+    if m1:
+        surname = m1.group(1)
+        initials = m1.group(2).replace(" ", "")
+        if not initials.endswith("."):
+            initials += "."
+        return f"{initials} {surname}"
+
+    # Сценарий 2: И.О. Фамилия
+    pattern_initials_first = re.compile(
+        r'^([А-Я]\s*\.\s*[А-Я]\s*\.?)\s+([А-Я][а-я]+(?:-[А-Я][а-я]+)?)$'
+    )
+    m2 = pattern_initials_first.match(name_str)
+    if m2:
+        initials = m2.group(1).replace(" ", "")
+        if not initials.endswith("."):
+            initials += "."
+        surname = m2.group(2)
+        return f"{initials} {surname}"
+
+    return name_str
+
+
 def clean_fio_spaces(name_str: str) -> str:
     s = clean_text(name_str)
     s = re.sub(r'([А-Я]\.)\s+([А-Я]\.)', r'\1\2', s)
     s = re.sub(r'([А-Я][а-я]+)([А-Я]\.[А-Я]\.)', r'\1 \2', s)
     s = re.sub(r'([А-Я]\.[А-Я]\.)([А-Я][а-я]+)', r'\1 \2', s)
+    s = standardize_initials_name(s)
+    return s
+
+
+def normalize_profile_text(text: str) -> str:
+    """Нормализует строку профиля для сопоставления, удаляя кавычки и знаки препинания."""
+    s = text.lower()
+    s = re.sub(r'[«»""\'\'„“]', '', s)
+    s = re.sub(r'^[\s,.;:-]+|[\s,.;:-]+$', '', s)
+    s = " ".join(s.split())
     return s
 
 
@@ -86,11 +149,49 @@ def has_name_pattern(text: str) -> bool:
     return False
 
 
+def split_multi_compiler_string(text: str) -> List[str]:
+    """Разбивает сложную строку с несколькими авторами на отдельные сегменты по границам ФИО."""
+    matches = list(FIO_REGEX.finditer(text))
+    if not matches:
+        return [text]
+
+    segments = []
+    for i, match in enumerate(matches):
+        start = match.start()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        segment_text = text[start:end].strip()
+        segment_text = re.sub(r'^[\s,.;:-]+|[\s,.;:-]+$', '', segment_text)
+        if segment_text:
+            segments.append(segment_text)
+    return segments
+
+
 def split_compiler_name_and_degree(compiler_str: str) -> Tuple[str, str]:
-    parts = compiler_str.split(",", 1)
-    name = clean_text(parts[0])
-    degree = clean_text(parts[1]) if len(parts) > 1 else ""
-    degree = re.sub(r'^[,\s]+|[,\s]+$', '', degree)
+    """Выделяет каноническое ФИО и ученую степень/должность составителя."""
+    compiler_str = clean_text(compiler_str)
+
+    match = FIO_REGEX.search(compiler_str)
+    if not match:
+        parts = compiler_str.split(",", 1)
+        name = clean_text(parts[0])
+        degree = clean_text(parts[1]) if len(parts) > 1 else ""
+        return name, degree
+
+    name = match.group(0).strip()
+
+    start, end = match.span()
+    prefix = compiler_str[:start].strip()
+    suffix = compiler_str[end:].strip()
+
+    degree_parts = []
+    if prefix:
+        degree_parts.append(prefix)
+    if suffix:
+        degree_parts.append(suffix)
+
+    degree = ", ".join(degree_parts)
+    degree = re.sub(r'^[\s,.;:-]+|[\s,.;:-]+$', '', degree).strip()
+
     return name, degree
 
 
@@ -140,6 +241,7 @@ def is_similar_name(name1: str, name2: str) -> bool:
 
 
 def find_person_by_role(lines: List[str], role_regex: re.Pattern, name_regex: re.Pattern, scan_offset: int = 4) -> str:
+    """Ищет должностное лицо по роли, игнорируя шаблонные заглушки."""
     for idx, line in enumerate(lines):
         line_clean = clean_text(line)
         if role_regex.search(line_clean):
@@ -148,7 +250,9 @@ def find_person_by_role(lines: List[str], role_regex: re.Pattern, name_regex: re
                     pot_line = clean_text(lines[idx + offset])
                     m = name_regex.search(pot_line)
                     if m:
-                        return clean_fio_spaces(m.group(0))
+                        potential_name = clean_fio_spaces(m.group(0))
+                        if not is_placeholder_name(potential_name):
+                            return potential_name
     return ""
 
 
@@ -199,12 +303,16 @@ def extract_default_personnel_from_excel(sheet) -> Dict[str, str]:
                         if test_cell:
                             m = fio_excel_pattern.search(test_cell)
                             if m:
-                                default_staff[target_key] = clean_fio_spaces(m.group(1))
-                                break
+                                potential_name = clean_fio_spaces(m.group(1))
+                                if not is_placeholder_name(potential_name):
+                                    default_staff[target_key] = potential_name
+                                    break
                             m_fb = fio_fallback_pattern.search(test_cell)
                             if m_fb:
-                                default_staff[target_key] = clean_fio_spaces(m_fb.group(1))
-                                break
+                                potential_name = clean_fio_spaces(m_fb.group(1))
+                                if not is_placeholder_name(potential_name):
+                                    default_staff[target_key] = potential_name
+                                    break
     return default_staff
 
 
@@ -252,16 +360,23 @@ def parse_rp_file(file_path: Path) -> Optional[dict]:
     for idx, line in enumerate(lines):
         line_clean = clean_text(line)
         if PROFILE_ROLE.search(line_clean):
+            # Попытка разделения по двоеточию или закрывающей скобке
             parts = re.split(r'[:\)]', line_clean, 1)
-            pot_profile = parts[-1].strip() if len(parts) > 1 else ""
+            if len(parts) > 1:
+                pot_profile = parts[-1].strip()
+            else:
+                # Если разделителей нет (ваш случай), вырезаем само ключевое слово роли
+                pot_profile = PROFILE_ROLE.sub("", line_clean, count=1).strip()
 
+            # Если строка профиля осталась пустой/короткой, ищем в следующих строках (с фильтрацией)
             if not pot_profile or len(pot_profile) < 5 or any(
                     x in pot_profile.lower() for x in ["направленность", "профиль", "наименование"]):
                 for offset in range(1, 3):
                     if idx + offset < len(lines):
                         pot = clean_text(lines[idx + offset])
                         if pot and len(pot) > 5 and not any(
-                                x in pot.lower() for x in ["направленность", "профиль", "наименование"]):
+                                x in pot.lower() for x in
+                                ["направленность", "профиль", "наименование", "уровень образования", "форма обучения"]):
                             pot_profile = pot
                             break
 
@@ -321,6 +436,13 @@ def parse_rp_file(file_path: Path) -> Optional[dict]:
                 compilers[-1] = " ".join(compilers[-1].split())
             else:
                 compilers.append(item)
+
+    # Постобработка: разбиваем склеенных в одну строку составителей на отдельные элементы
+    final_compilers: List[str] = []
+    for c in compilers:
+        split_items = split_multi_compiler_string(c)
+        final_compilers.extend(split_items)
+    compilers = final_compilers
 
     if not discipline:
         logger.warning(f"В файле {file_path.name} не удалось определить название дисциплины.")
@@ -405,7 +527,7 @@ class PersonnelExtractor:
         clusters = []
         for r_name in raw_names:
             c_name = clean_fio_spaces(r_name)
-            if not c_name:
+            if not c_name or is_placeholder_name(c_name):
                 continue
             matched_cluster = None
             for cl in clusters:
@@ -431,7 +553,7 @@ class PersonnelExtractor:
         return entities, lookup
 
     def _cluster_profiles(self, raw_profiles: List[str]) -> Tuple[Dict[str, Any], Dict[str, str]]:
-        """Нормализует длинные текстовые названия профилей, удаляя дубли по содержанию."""
+        """Нормализует текстовые названия профилей, устраняя мелкие различия и кавычки."""
         entities = {}
         lookup = {}
         seen_profiles = {}
@@ -441,14 +563,36 @@ class PersonnelExtractor:
             clean_prof = clean_text(prof)
             if not clean_prof:
                 continue
-            norm_prof = " ".join(clean_prof.lower().split())
-            if norm_prof not in seen_profiles:
+
+            norm_prof = normalize_profile_text(clean_prof)
+
+            # Пропуск технических/информационных строк, не являющихся названиями профилей
+            if any(x in norm_prof for x in ["уровень образования", "бакалавриат", "магистратура", "форма обучения"]):
+                continue
+
+            matched_id = None
+            for existing_norm, existing_id in seen_profiles.items():
+                if existing_norm == norm_prof:
+                    matched_id = existing_id
+                    break
+
+                # Сопоставление с помощью расстояния Левенштейна для фильтрации опечаток/вариаций
+                max_len = max(len(existing_norm), len(norm_prof))
+                if max_len > 10 and levenshtein_distance(existing_norm, norm_prof) / max_len < 0.1:
+                    matched_id = existing_id
+                    break
+
+            if matched_id is None:
                 entity_id = f"profile_{idx}"
                 seen_profiles[norm_prof] = entity_id
-                entities[entity_id] = {"name": clean_prof}
-                idx += 1
 
-            lookup[clean_prof.lower()] = seen_profiles[norm_prof]
+                # Формируем каноническое имя (удаляя внешние кавычки для корректного отображения)
+                canonical_name = re.sub(r'^[\s«"\'„]+|[\s»"\'“]+$', '', clean_prof).strip()
+                entities[entity_id] = {"name": canonical_name}
+                idx += 1
+                matched_id = entity_id
+
+            lookup[clean_prof.lower()] = matched_id
 
         return entities, lookup
 
@@ -459,7 +603,8 @@ class PersonnelExtractor:
             for disc_key, data in subjects.items():
                 for comp_str in data.get("compilers", []):
                     name, degree = split_compiler_name_and_degree(comp_str)
-                    if name:
+                    # Фильтрация шаблонных имен-заглушек
+                    if name and not is_placeholder_name(name):
                         raw_compilers_seen.append((comp_str, name, degree))
 
         clusters = []
@@ -505,10 +650,10 @@ class PersonnelExtractor:
 
         return teachers_dict, raw_to_teacher_id
 
-    def _lookup_id(self, val: str, lookup_dict: Dict[str, str]) -> str:
+    def _lookup_id(self, val: str, lookup_dict: Dict[str, str]) -> Optional[str]:
         if not val:
-            return ""
-        return lookup_dict.get(clean_text(val).lower(), "")
+            return None
+        return lookup_dict.get(clean_text(val).lower(), None)
 
     def _normalize_all_entities(self, raw_subjects: Dict[str, Dict[str, Any]], default_staff: Dict[str, str]) -> Dict[
         str, Any]:

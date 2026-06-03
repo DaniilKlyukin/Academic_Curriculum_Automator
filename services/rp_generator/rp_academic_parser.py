@@ -12,6 +12,18 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(
 logger = logging.getLogger(__name__)
 
 
+def clean_text(val: Any) -> str:
+    """Очищает строку от технических артефактов Excel XML (_x000D_ и др.) и лишних пробелов."""
+    if val is None:
+        return ""
+    s = str(val).strip()
+    # Удаление артефактов кодирования Excel XML типа _x000D_, _x000D_ и схожих
+    s = re.sub(r"_x[0-9a-fA-F]{4}_", "", s)
+    # Замена повторяющихся пробелов и переносов на один стандартный пробел
+    s = re.sub(r"\s+", " ", s)
+    return s.strip()
+
+
 def parse_semesters_string(sem_str: str) -> List[int]:
     """Интеллектуально разбирает строку семестров контроля (например, '12345', '78', '1-5', '1, 2')."""
     if not sem_str:
@@ -95,9 +107,9 @@ class AcademicPlanParser:
         # Динамический поиск колонок Кода и Наименования на случай смещения
         for col in range(1, sheet.max_column + 1):
             for row in range(1, 4):
-                val = str(sheet.cell(row=row, column=col).value or "").lower().strip()
+                val = clean_text(sheet.cell(row=row, column=col).value).lower()
                 if "закреплен" in val or "кафедр" in val:
-                    sub_val = str(sheet.cell(row=3, column=col).value or "").lower().strip()
+                    sub_val = clean_text(sheet.cell(row=3, column=col).value).lower()
                     if "код" in sub_val:
                         col_code = col
                     elif "наимен" in sub_val:
@@ -113,7 +125,7 @@ class AcademicPlanParser:
                 code_int = None
 
             if code_int is not None and name_val:
-                dept_map[code_int] = str(name_val).strip()
+                dept_map[code_int] = clean_text(name_val)
 
         logger.info(f"Справочник кафедр успешно построен из 'ПланСвод' (всего записей: {len(dept_map)})")
         return dept_map
@@ -122,7 +134,7 @@ class AcademicPlanParser:
         """Автоматически определяет номера колонок нагрузки (Лек, Лаб, Пр, СР) для каждого семестра."""
         semester_map = {}
         for col in range(1, sheet.max_column + 1):
-            cell_val = str(sheet.cell(row=2, column=col).value or "").strip()
+            cell_val = clean_text(sheet.cell(row=2, column=col).value)
             if "семестр" in cell_val.lower():
                 m = re.search(r"семестр\s*(\d+)", cell_val, re.IGNORECASE)
                 if m:
@@ -139,7 +151,7 @@ class AcademicPlanParser:
         """Автоматически находит индекс колонки кода закрепленной кафедры."""
         for col in range(1, sheet.max_column + 1):
             for row in range(1, 4):
-                cell_val = str(sheet.cell(row=row, column=col).value or "").lower().strip()
+                cell_val = clean_text(sheet.cell(row=row, column=col).value).lower()
                 if "закреплен" in cell_val:
                     return col
         return 50
@@ -148,22 +160,27 @@ class AcademicPlanParser:
         """Помехоустойчиво ищет значение параметра на листе по ключевому регулярному выражению."""
         for row in range(1, min(sheet.max_row + 1, 150)):  # Ограничение сканирования титула первыми 150 строками
             for col in range(1, sheet.max_column + 1):
-                cell_val = str(sheet.cell(row=row, column=col).value or "").strip()
+                cell_val = clean_text(sheet.cell(row=row, column=col).value)
                 if not cell_val:
                     continue
                 if regex.search(cell_val):
                     # Если значение указано в этой же ячейке после двоеточия
                     if ":" in cell_val:
                         parts = cell_val.split(":", 1)
-                        val = parts[1].strip()
+                        val = clean_text(parts[1])
                         if val and len(val) > 1:
                             return val
                     # Иначе ищем значение в ячейках справа
                     for offset in range(1, max_cols_offset):
                         if col + offset <= sheet.max_column:
-                            test_val = str(sheet.cell(row=row, column=col + offset).value or "").strip()
+                            test_val = clean_text(sheet.cell(row=row, column=col + offset).value)
                             if test_val and len(test_val) > 1:
                                 return test_val
+                    # Резерв: ищем значение в ячейке прямо под текущей (на случай вертикального расположения)
+                    if row + 1 <= sheet.max_row:
+                        test_val = clean_text(sheet.cell(row=row + 1, column=col).value)
+                        if test_val and len(test_val) > 1:
+                            return test_val
         return ""
 
     def _extract_title_metadata(self, wb) -> Dict[str, str]:
@@ -198,7 +215,8 @@ class AcademicPlanParser:
         pat_faculty = re.compile(r"факультет\b|институт\b", re.IGNORECASE)
         pat_department = re.compile(r"кафедра\b", re.IGNORECASE)
         pat_profile = re.compile(r"профиль\b|направленность\b", re.IGNORECASE)
-        pat_direction = re.compile(r"направление\b|специальность\b", re.IGNORECASE)
+        pat_direction = re.compile(r"направление\b|специальность\b|код\s+направления\b|шифр\s+направления\b",
+                                   re.IGNORECASE)
 
         # Сбор данных с листа "Титул"
         metadata["qualification"] = self._extract_field_by_keyword(sheet, pat_qualification)
@@ -211,16 +229,69 @@ class AcademicPlanParser:
         metadata["department"] = self._extract_field_by_keyword(sheet, pat_department)
         metadata["profile"] = self._extract_field_by_keyword(sheet, pat_profile)
 
-        # Парсинг направления подготовки (Код + Название)
-        direction_raw = self._extract_field_by_keyword(sheet, pat_direction)
-        if direction_raw:
-            code_match = re.search(r"(\d{2}\.\d{2}\.\d{2})", direction_raw)
-            if code_match:
-                metadata["direction_code"] = code_match.group(1)
-                name_part = direction_raw.replace(metadata["direction_code"], "").strip()
-                metadata["direction_name"] = re.sub(r"^[-\s,.:\)]+", "", name_part).strip()
-            else:
-                metadata["direction_name"] = direction_raw
+        # Специализированный поиск направления подготовки (Код + Наименование)
+        direction_code = ""
+        direction_name = ""
+        found_code_row = None
+
+        # 1. Поиск кода направления вида "XX.XX.XX" в первых 60 строках листа
+        for r in range(1, min(sheet.max_row + 1, 60)):
+            for c in range(1, sheet.max_column + 1):
+                val = clean_text(sheet.cell(row=r, column=c).value)
+                if val:
+                    m = re.match(r"^\s*(\d{2}\.\d{2}\.\d{2})\s*$", val)
+                    if m:
+                        direction_code = m.group(1)
+                        found_code_row = r
+                        break
+            if found_code_row:
+                break
+
+        # 2. Поиск названия направления на строки ниже найденного кода
+        if found_code_row:
+            # Просматриваем до 3 строк ниже строки с кодом направления
+            for offset in range(1, 4):
+                target_row = found_code_row + offset
+                if target_row > sheet.max_row:
+                    break
+
+                # Собираем все непустые ячейки в этой строке
+                row_vals = []
+                for col in range(1, sheet.max_column + 1):
+                    cell_val = clean_text(sheet.cell(row=target_row, column=col).value)
+                    if cell_val:
+                        row_vals.append(cell_val)
+
+                # Исключаем строки, содержащие другие служебные метаданные (например, Профиль, Кафедра и др.)
+                valid_vals = []
+                for val in row_vals:
+                    val_lower = val.lower()
+                    if any(kw in val_lower for kw in [
+                        "профиль", "направленность", "кафедра", "факультет",
+                        "квалификация", "утверждаю", "форма обучения", "протокол"
+                    ]):
+                        continue
+                    if len(val) > 2:
+                        valid_vals.append(val)
+
+                if valid_vals:
+                    direction_name = valid_vals[0]
+                    break
+
+        # Резервный вариант: если точный код не найден по шаблону, используем поиск по ключевому слову
+        if not direction_code and not direction_name:
+            direction_raw = self._extract_field_by_keyword(sheet, pat_direction)
+            if direction_raw:
+                code_match = re.search(r"(\d{2}\.\d{2}\.\d{2})", direction_raw)
+                if code_match:
+                    direction_code = code_match.group(1)
+                    name_part = direction_raw.replace(direction_code, "").strip()
+                    direction_name = re.sub(r"^[-\s,.:\)]+", "", name_part).strip()
+                else:
+                    direction_name = direction_raw
+
+        metadata["direction_code"] = direction_code
+        metadata["direction_name"] = clean_text(direction_name)
 
         logger.info(f"Успешно извлечены метаданные плана: {metadata}")
         return metadata
@@ -232,7 +303,7 @@ class AcademicPlanParser:
         # Сбор общих метаданных учебного плана (форма обучения, квалификация, стандарты и др.)
         metadata = self._extract_title_metadata(wb)
 
-        # Новое: Строим справочник соответствия кодов и названий кафедр из ПланСвод
+        # Строим справочник соответствия кодов и названий кафедр из ПланСвод
         dept_directory = self._parse_department_directory(wb)
 
         sheet_name = self._find_plan_sheet(wb)
@@ -266,11 +337,11 @@ class AcademicPlanParser:
         current_elective_group: Optional[Dict[str, str]] = None
 
         for row in range(4, sheet.max_row + 1):
-            idx_val = str(sheet.cell(row=row, column=col_index).value or "").strip()
+            idx_val = clean_text(sheet.cell(row=row, column=col_index).value)
 
             # --- СЦЕНАРИЙ А: Строка заголовка (Блок или Подблок) ---
             if not idx_val:
-                row_texts = [str(sheet.cell(row=row, column=col).value or "").strip() for col in range(1, 6)]
+                row_texts = [clean_text(sheet.cell(row=row, column=col).value) for col in range(1, 6)]
                 full_row_text = " ".join([t for t in row_texts if t])
 
                 # 1. Поиск названия Блока
@@ -301,7 +372,7 @@ class AcademicPlanParser:
 
             # --- СЦЕНАРИЙ Б: Строка элемента (Дисциплина, Практика, ГИА, Факультатив) ---
             if re.match(r"^(Б\d|ФТД)", idx_val):
-                name_val = str(sheet.cell(row=row, column=col_name).value or "").strip()
+                name_val = clean_text(sheet.cell(row=row, column=col_name).value)
                 if not name_val:
                     continue
 
@@ -344,11 +415,11 @@ class AcademicPlanParser:
                     credit_units = 0
 
                 # 4. Извлечение форм контроля
-                exam_sems = str(sheet.cell(row=row, column=col_exam).value or "").strip()
-                credit_sems = str(sheet.cell(row=row, column=col_credit).value or "").strip()
-                graded_credit_sems = str(sheet.cell(row=row, column=col_graded_credit).value or "").strip()
-                kp_sems = str(sheet.cell(row=row, column=col_kp).value or "").strip()
-                kr_sems = str(sheet.cell(row=row, column=col_kr).value or "").strip()
+                exam_sems = clean_text(sheet.cell(row=row, column=col_exam).value)
+                credit_sems = clean_text(sheet.cell(row=row, column=col_credit).value)
+                graded_credit_sems = clean_text(sheet.cell(row=row, column=col_graded_credit).value)
+                kp_sems = clean_text(sheet.cell(row=row, column=col_kp).value)
+                kr_sems = clean_text(sheet.cell(row=row, column=col_kr).value)
 
                 # 5. Распределение семестровой нагрузки
                 load_by_semester = {}
@@ -356,6 +427,11 @@ class AcademicPlanParser:
                 total_labs = 0
                 total_practicals = 0
                 total_cp = 0
+
+                # Списки семестров контроля
+                exam_sems = parse_semesters_string(exam_sems)
+                credit_sems = parse_semesters_string(credit_sems)
+                graded_credit_sems = parse_semesters_string(graded_credit_sems)
 
                 for sem_num, cols in semester_cols.items():
                     lek = sheet.cell(row=row, column=cols["Lek"]).value
@@ -371,12 +447,38 @@ class AcademicPlanParser:
                     except (ValueError, TypeError):
                         continue
 
-                    if lek_h > 0 or lab_h > 0 or pr_h > 0 or cp_h > 0:
+                    # Проверяем, есть ли формы контроля в данном семестре
+                    control_info = None
+                    if sem_num in exam_sems:
+                        control_info = {
+                            "type": "Exam",
+                            "kcha": 0.4,
+                            "self_study": 35.6,
+                            "total": 36.0
+                        }
+                    elif sem_num in graded_credit_sems:
+                        control_info = {
+                            "type": "GradedCredit",
+                            "kcha": 0.4,
+                            "self_study": 1.6,
+                            "total": 2.0
+                        }
+                    elif sem_num in credit_sems:
+                        control_info = {
+                            "type": "Credit",
+                            "kcha": 0.3,
+                            "self_study": 1.7,
+                            "total": 2.0
+                        }
+
+                    # Семестр активен, если есть аудиторная нагрузка, СРС или форма контроля
+                    if lek_h > 0 or lab_h > 0 or pr_h > 0 or cp_h > 0 or control_info is not None:
                         load_by_semester[str(sem_num)] = {
                             "lectures": lek_h,
                             "laboratory_works": lab_h,
                             "practical_classes": pr_h,
-                            "self_study": cp_h
+                            "self_study": cp_h,
+                            "intermediate_control": control_info
                         }
                         total_lectures += lek_h
                         total_labs += lab_h
@@ -387,7 +489,7 @@ class AcademicPlanParser:
                     "code": idx_val,
                     "name": name_val,
                     "department_code": department_code,
-                    "department_name": department_name,  # Сохраняем текстовое имя кафедры
+                    "department_name": department_name,
                     "credit_units": credit_units,
                     "structure": {
                         "block": current_block,
@@ -395,9 +497,9 @@ class AcademicPlanParser:
                         "elective_group": active_elective
                     },
                     "control_forms": {
-                        "exams": parse_semesters_string(exam_sems),
-                        "credits": parse_semesters_string(credit_sems),
-                        "graded_credits": parse_semesters_string(graded_credit_sems),
+                        "exams": exam_sems,
+                        "credits": credit_sems,
+                        "graded_credits": graded_credit_sems,
                         "course_projects": parse_semesters_string(kp_sems),
                         "course_works": parse_semesters_string(kr_sems)
                     },

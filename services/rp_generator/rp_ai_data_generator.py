@@ -135,34 +135,44 @@ if HAS_GEMINI:
     ResourcesAndEvaluationSchema = types.Schema(
         type=types.Type.OBJECT,
         properties={
-            "primary_literature": types.Schema(
-                type=types.Type.ARRAY,
-                description="Список основной учебной литературы. Ссылки строго на www.iprbookshop.ru / IPR SMART, год издания 2020-2025",
-                items=types.Schema(type=types.Type.STRING)
-            ),
-            "secondary_literature": types.Schema(
-                type=types.Type.ARRAY,
-                description="Список дополнительной учебной литературы",
-                items=types.Schema(type=types.Type.STRING)
-            ),
-            "methodological_guidelines": types.Schema(
-                type=types.Type.ARRAY,
-                description="Методические указания и рекомендации для обучающихся",
-                items=types.Schema(type=types.Type.STRING)
-            ),
-            "internet_resources": types.Schema(
-                type=types.Type.ARRAY,
-                description="Электронно-библиотечные ресурсы и интернет-ссылки",
-                items=types.Schema(type=types.Type.STRING)
-            ),
+            "primary_literature": types.Schema(type=types.Type.ARRAY, items=types.Schema(type=types.Type.STRING)),
+            "secondary_literature": types.Schema(type=types.Type.ARRAY, items=types.Schema(type=types.Type.STRING)),
+            "methodological_guidelines": types.Schema(type=types.Type.ARRAY,
+                                                      items=types.Schema(type=types.Type.STRING)),
+            "internet_resources": types.Schema(type=types.Type.ARRAY, items=types.Schema(type=types.Type.STRING)),
             "control_questions": types.Schema(
                 type=types.Type.ARRAY,
-                description="Контрольные вопросы для подготовки к зачету/экзамену",
+                description="Контрольные вопросы для подготовки к зачету/экзамену (не менее 15 вопросов)",
+                items=types.Schema(type=types.Type.STRING)
+            ),
+            "test_questions": types.Schema(
+                type=types.Type.ARRAY,
+                description="Набор из 5 тестовых вопросов по дисциплине с 4 вариантами ответов и указанием номера верного ответа",
+                items=types.Schema(
+                    type=types.Type.OBJECT,
+                    properties={
+                        "question": types.Schema(type=types.Type.STRING, description="Текст вопроса"),
+                        "options": types.Schema(
+                            type=types.Type.ARRAY,
+                            items=types.Schema(type=types.Type.STRING),
+                            description="4 варианта ответа"
+                        ),
+                        "correct_answer": types.Schema(type=types.Type.STRING,
+                                                       description="Номер правильного ответа (от 1 до 4)")
+                    },
+                    required=["question", "options", "correct_answer"]
+                )
+            ),
+            "software": types.Schema(
+                type=types.Type.ARRAY,
+                description="Программное обеспечение, необходимое для освоения дисциплины (среды разработки, симуляторы, САПР, специализированные пакеты)",
                 items=types.Schema(type=types.Type.STRING)
             )
         },
-        required=["primary_literature", "secondary_literature", "methodological_guidelines", "internet_resources",
-                  "control_questions"]
+        required=[
+            "primary_literature", "secondary_literature", "methodological_guidelines",
+            "internet_resources", "control_questions", "test_questions", "software"
+        ]
     )
 
 
@@ -411,10 +421,14 @@ class RPAIGenerator:
 def main():
     print("=== Интеллектуальный ИИ-генератор данных РП (Gemini) ===")
 
-    # Путь по умолчанию
-    project_dir = Path("services/rp_generator")
-    if not project_dir.exists():
-        project_dir.mkdir(parents=True, exist_ok=True)
+    # Запрос пути к папке с результатами парсинга
+    user_project_dir = input(
+        "Введите путь к папке с файлами JSON учебного плана (по умолчанию 'services/rp_generator'): ").strip()
+    if not user_project_dir:
+        user_project_dir = "services/rp_generator"
+
+    project_dir = Path(user_project_dir)
+    project_dir.mkdir(parents=True, exist_ok=True)
 
     rpm_limit = 15
     rpm_input = input("Укажите лимит запросов в минуту (RPM) [По умолчанию: 15]: ").strip()

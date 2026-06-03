@@ -8,12 +8,33 @@
   },
   "deans": {
     "dean_1": {
-      "name": "Соболев В.В."
+      "name": "В.В. Соболев"
     }
   },
   "heads_of_department": {
     "hod_1": {
       "name": "С.А. Королев"
+    },
+    "hod_2": {
+      "name": "С.А. Рябая"
+    },
+    "hod_3": {
+      "name": "В.А. Баранов"
+    },
+    "hod_4": {
+      "name": "Е.И. Архипова"
+    },
+    "hod_5": {
+      "name": "С.Н. Фирсова"
+    },
+    "hod_6": {
+      "name": "Ю.А. Шихов"
+    },
+    "hod_7": {
+      "name": "В.В. Лаптинский"
+    },
+    "hod_8": {
+      "name": "Н.Н. Пушина"
     }
   },
   "program_directors": {
@@ -38,24 +59,405 @@
   },
   "teachers": {
     "teacher_1": {
+      "name": "Русяк Иван Григорьевич",
+      "degree_and_title": "д.т.н., профессор"
+    },
+    "teacher_2": {
+      "name": "Ватолкин Михаил Юрьевич",
+      "degree_and_title": "канд. физ.-мат. наук, доцент"
+    },
+    "teacher_3": {
       "name": "Нефедов Денис Геннадьевич",
       "degree_and_title": "к.т.н., доцент"
     },
-    "teacher_2": {
+    "teacher_4": {
       "name": "Клюкин Даниил Анатольевич",
+      "degree_and_title": "ст. преподаватель"
+    },
+    "teacher_5": {
+      "name": "Королев Станислав Анатольевич",
+      "degree_and_title": "д.т.н., доцент"
+    },
+    "teacher_6": {
+      "name": "Дизендорф Константин Игоревич",
       "degree_and_title": "к.ф.-м.н., доцент"
+    },
+    "teacher_7": {
+      "name": "Кетова Каролина Вячеславовна",
+      "degree_and_title": "д.ф.-м.н., профессор"
+    },
+    "teacher_8": {
+      "name": "Вавилова Дайана Дамировна",
+      "degree_and_title": "кандидат технических наук"
+    },
+    "teacher_9": {
+      "name": "Кузьмин Михаил Степанович",
+      "degree_and_title": ""
+    },
+    "teacher_10": {
+      "name": "Корепанова Алла Вячеславовна",
+      "degree_and_title": ""
+    },
+    "teacher_11": {
+      "name": "Айзикович Александр Аркадьевич",
+      "degree_and_title": "к.ф.-м.н., доцент"
+    },
+    "teacher_12": {
+      "name": "Мансуров Рустам Ренатович",
+      "degree_and_title": ""
+    },
+    "teacher_13": {
+      "name": "Ицков Александр Григорьевич",
+      "degree_and_title": "канд. физ.-мат. наук, доцент"
+    },
+    "teacher_14": {
+      "name": "Суфиянов Вадим Гарайханович",
+      "degree_and_title": "д.т.н., доцент"
+    },
+    "teacher_15": {
+      "name": "Капралова Александра Михайловна",
+      "degree_and_title": ""
+    },
+    "teacher_16": {
+      "name": "Кузнецова Любовь Николаевна",
+      "degree_and_title": "к.п.н., доцент"
+    },
+    "teacher_17": {
+      "name": "Докучаева Елена Борисовна",
+      "degree_and_title": ""
+    },
+    "teacher_18": {
+      "name": "Зубарева Татьяна Родионовна",
+      "degree_and_title": ""
+    },
+    "teacher_19": {
+      "name": "Замостьянова Тамара Владимировна",
+      "degree_and_title": "канд. ист. наук, доцент"
+    },
+    "teacher_20": {
+      "name": "Кручинская Марина Владимировна",
+      "degree_and_title": "канд. ист. наук, доцент"
+    },
+    "teacher_21": {
+      "name": "Рябая Светлана Анатольевна",
+      "degree_and_title": "канд. ист. наук, доцент"
+    },
+    "teacher_22": {
+      "name": "Степанова Наталья Юрьевна",
+      "degree_and_title": "канд. ист. наук, доцент"
+    },
+    "teacher_23": {
+      "name": "Баранов Виктор Аркадьевич",
+      "degree_and_title": "д-р филол. наук, профессор"
+    },
+    "teacher_24": {
+      "name": "Жданова Екатерина Анатольевна",
+      "degree_and_title": "канд. филол. наук, доцент"
+    },
+    "teacher_25": {
+      "name": "Верняева Регина Александровна",
+      "degree_and_title": "канд. филол. наук, доцент"
+    },
+    "teacher_26": {
+      "name": "Зливко Светлана Дмитриевна",
+      "degree_and_title": "канд. филол. наук"
+    },
+    "teacher_27": {
+      "name": "Гуреева Анастасия Сергеевна",
+      "degree_and_title": ""
+    },
+    "teacher_28": {
+      "name": "Тихонов Геннадий Михайлович",
+      "degree_and_title": "д.филос.н., профессор кафедры"
+    },
+    "teacher_29": {
+      "name": "Злобина Екатерина Юрьевна",
+      "degree_and_title": "к.э.н., доцент"
+    },
+    "teacher_30": {
+      "name": "Пилюшенко Александра Валерьевна",
+      "degree_and_title": "к.ф.н"
+    },
+    "teacher_31": {
+      "name": "Бусыгина Елена Леонидовна",
+      "degree_and_title": "к.ф.-м.н., доцент"
+    },
+    "teacher_32": {
+      "name": "Гимазетдинов Дамир Рифкатович",
+      "degree_and_title": "к.ю.н"
+    },
+    "teacher_33": {
+      "name": "Анисимова Александра Юрьевна",
+      "degree_and_title": "к.п.н., доцент"
+    },
+    "teacher_34": {
+      "name": "Севастьянов Борис Владимирович",
+      "degree_and_title": "д.т.н., профессор"
+    },
+    "teacher_35": {
+      "name": "Янников Игорь Михайлович",
+      "degree_and_title": "д.т.н., доцент, профессор кафедры"
+    },
+    "teacher_36": {
+      "name": "Али Елена Борисовна",
+      "degree_and_title": "к.т.н., доцент"
+    },
+    "teacher_37": {
+      "name": "Козловская Наталья Викторовна",
+      "degree_and_title": "к.б.н., доцент"
+    },
+    "teacher_38": {
+      "name": "Терехов Александр Павлович",
+      "degree_and_title": "к.мед.н., доцент"
+    },
+    "teacher_39": {
+      "name": "Селюнина Наталья Викторовна",
+      "degree_and_title": "старший преподаватель"
+    },
+    "teacher_40": {
+      "name": "Попов Сергей Юрьевич",
+      "degree_and_title": "старший преподаватель"
+    },
+    "teacher_41": {
+      "name": "Лазаричева Евгения Сергеевна",
+      "degree_and_title": "к.ф.н"
+    },
+    "teacher_42": {
+      "name": "Багровникова Светлана Владимировна",
+      "degree_and_title": "к.и.н"
+    },
+    "teacher_43": {
+      "name": "Пушина Наталья Николаевна",
+      "degree_and_title": "кандидат экономических наук, доцент"
     }
   },
   "subjects_mapping": {
     "01.03.04 Прикладная математика": {
+      "Введение в профессиональную деятельность": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_1"
+        ]
+      },
+      "Дополнительные главы математического анализа": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_2"
+        ]
+      },
       "Объектно-ориентированное программирование": {
         "profile": "profile_1",
         "dean": "dean_1",
         "head_of_department": "hod_1",
         "program_director": "pd_1",
         "teachers": [
-          "teacher_1",
-          "teacher_2"
+          "teacher_3",
+          "teacher_4"
+        ]
+      },
+      "Программирование для Интернет": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_3"
+        ]
+      },
+      "Базы данных": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_5"
+        ]
+      },
+      "Механика сплошных сред": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_5"
+        ]
+      },
+      "Технология программирования": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_3"
+        ]
+      },
+      "Математическое моделирование": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_6"
+        ]
+      },
+      "Численные методы решения дифференциальных уравнений": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_1"
+        ]
+      },
+      "Экономико-математические методы": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_7"
+        ]
+      },
+      "Проектирование программного обеспечения": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_3"
+        ]
+      },
+      "Теория управления": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_7"
+        ]
+      },
+      "Программные и аппаратные средства информатики": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_3"
+        ]
+      },
+      "Основы системного анализа": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_3"
+        ]
+      },
+      "Теория размещения производства": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_3"
+        ]
+      },
+      "Операционные системы и сети электронно-вычислительных машин": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_3"
+        ]
+      },
+      "Параллельное программирование": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_3"
+        ]
+      },
+      "Планирование и обработка эксперимента": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_6"
+        ]
+      },
+      "Логическое и функциональное программирование": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_6"
+        ]
+      },
+      "Эконометрика": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_8"
+        ]
+      },
+      "Математические модели микроэкономики": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_7"
+        ]
+      },
+      "Прикладная логистика": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_7"
+        ]
+      },
+      "Математические модели макроэкономики": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_7",
+          "teacher_8"
+        ]
+      },
+      "Математический анализ": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_8"
+        ]
+      },
+      "Линейная алгебра и аналитическая геометрия": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_7"
         ]
       },
       "Информационные технологии и программирование": {
@@ -64,8 +466,363 @@
         "head_of_department": "hod_1",
         "program_director": "pd_1",
         "teachers": [
-          "teacher_1",
-          "teacher_2"
+          "teacher_3",
+          "teacher_4"
+        ]
+      },
+      "Дифференциальные уравнения": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_5"
+        ]
+      },
+      "Основы функционального анализа": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_9"
+        ]
+      },
+      "Теория функций комплексного переменного": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_10",
+          "teacher_11"
+        ]
+      },
+      "Уравнения математической физики": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_1"
+        ]
+      },
+      "Численные методы алгебры": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_1"
+        ]
+      },
+      "Методы оптимизации": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_8"
+        ]
+      },
+      "Исследование операций": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_5"
+        ]
+      },
+      "Компьютерная графика": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_3",
+          "teacher_12"
+        ]
+      },
+      "Общая алгебра и теория чисел": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_9"
+        ]
+      },
+      "Комбинаторика и теория графов": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_5"
+        ]
+      },
+      "Деловой документооборот": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_8"
+        ]
+      },
+      "Менеджмент в профессиональной деятельности": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_8"
+        ]
+      }
+    },
+    "01.03.04 «Прикладная математика»": {
+      "Основы искусственного интеллекта и теории принятия решений": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_13"
+        ]
+      },
+      "Информационные технологии анализа и обработки данных": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_14"
+        ]
+      },
+      "Общая физическая подготовка": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_15"
+        ]
+      },
+      "Оздоровительная физическая культура": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_16"
+        ]
+      },
+      "Спортивная подготовка": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_17",
+          "teacher_18"
+        ]
+      },
+      "История России": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_2",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_19",
+          "teacher_20",
+          "teacher_21",
+          "teacher_22"
+        ]
+      },
+      "Основы деловой коммуникации": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_3",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_23",
+          "teacher_24",
+          "teacher_25",
+          "teacher_26"
+        ]
+      },
+      "Иностранный язык": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_4",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_27"
+        ]
+      },
+      "Дискретная математика": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_13"
+        ]
+      },
+      "Социальное взаимодействие": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_2",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_28"
+        ]
+      },
+      "Основы экономики": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_5",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_29"
+        ]
+      },
+      "Философия": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_2",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_30"
+        ]
+      },
+      "Физика": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_6",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_31"
+        ]
+      },
+      "Математическая логика": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_13"
+        ]
+      },
+      "Правоведение": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_7",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_32"
+        ]
+      },
+      "Основы проектной деятельности": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_14",
+          "teacher_3"
+        ]
+      },
+      "Теория вероятностей и математическая статистика": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_13"
+        ]
+      },
+      "Физическая культура и спорт": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_33"
+        ]
+      },
+      "Теория случайных процессов и основы теории массового обслуживания": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_14"
+        ]
+      },
+      "Безопасность жизнедеятельности": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_34",
+          "teacher_35",
+          "teacher_36",
+          "teacher_37",
+          "teacher_38",
+          "teacher_39",
+          "teacher_40"
+        ]
+      },
+      "Компьютерные технологии математических исследований": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_14"
+        ]
+      },
+      "Основы российской государственности": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_2",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_30",
+          "teacher_41",
+          "teacher_42",
+          "teacher_21"
+        ]
+      },
+      "Основы военной подготовки": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_34",
+          "teacher_40"
+        ]
+      },
+      "Гражданская оборона": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_35"
+        ]
+      },
+      "Технологическое предпринимательство": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_8",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_43"
         ]
       }
     }

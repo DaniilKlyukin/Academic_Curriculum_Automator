@@ -1,0 +1,73 @@
+{
+  "default_department_personnel": {
+    "dean": "dean_1",
+    "head_of_department": "hod_1",
+    "program_director": "pd_1",
+    "umk_chairman": "umk_1",
+    "oamr_head": "oamr_1"
+  },
+  "deans": {
+    "dean_1": {
+      "name": "Соболев В.В."
+    }
+  },
+  "heads_of_department": {
+    "hod_1": {
+      "name": "С.А. Королев"
+    }
+  },
+  "program_directors": {
+    "pd_1": {
+      "name": "С.А. Королев"
+    }
+  },
+  "umk_chairmen": {
+    "umk_1": {
+      "name": "В.Г. Суфиянов"
+    }
+  },
+  "oamr_heads": {
+    "oamr_1": {
+      "name": "М.С. Дмитриева"
+    }
+  },
+  "profiles": {
+    "profile_1": {
+      "name": "Применение математических методов и программных средств для решения инженерных и экономических задач"
+    }
+  },
+  "teachers": {
+    "teacher_1": {
+      "name": "Нефедов Денис Геннадьевич",
+      "degree_and_title": "к.т.н., доцент"
+    },
+    "teacher_2": {
+      "name": "Клюкин Даниил Анатольевич",
+      "degree_and_title": "к.ф.-м.н., доцент"
+    }
+  },
+  "subjects_mapping": {
+    "01.03.04 Прикладная математика": {
+      "Объектно-ориентированное программирование": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_1",
+          "teacher_2"
+        ]
+      },
+      "Информационные технологии и программирование": {
+        "profile": "profile_1",
+        "dean": "dean_1",
+        "head_of_department": "hod_1",
+        "program_director": "pd_1",
+        "teachers": [
+          "teacher_1",
+          "teacher_2"
+        ]
+      }
+    }
+  }
+}

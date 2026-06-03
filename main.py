@@ -18,6 +18,8 @@ from services.image_service import ImageToPDFService
 from services.rp_generator.rp_personnel_extractor import main as run_rp_personnel_extractor
 from services.rp_generator.rp_academic_parser import main as run_rp_academic_parser
 from services.rp_generator.rp_competency_mapper import main as run_rp_competency_mapper
+from services.rp_generator.rp_ai_data_generator import main as run_rp_ai_data_generator
+from services.rp_generator.rp_generator import main as run_rp_generator
 
 logging.basicConfig(
     filename='app_errors.log',
@@ -91,6 +93,8 @@ def main() -> None:
         "15": ("[РП Модуль] Извлечение кадров из старых РП", run_rp_personnel_extractor),
         "16": ("[РП Модуль] Парсинг учебных нагрузок и часов (План)", run_rp_academic_parser),
         "17": ("[РП Модуль] Разбор связей предметов и компетенций", run_rp_competency_mapper),
+        "18": ("[РП Модуль] ИИ Генерация недостающих данных РП (Gemini)", run_rp_ai_data_generator),
+        "19": ("[РП Модуль] Генерация полных рабочих программ (РПД)", run_rp_generator),
     }
 
     while True:
@@ -111,7 +115,7 @@ def main() -> None:
         elif choice in menu_items:
             execute_service(menu_items[choice][1])
         else:
-            print("\nОшибка: Некорректный выбор. Пожалуйста, введите число от 0 до 14.")
+            print("\nОшибка: Некорректный выбор. Пожалуйста, введите число от 0 до 19.")
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@ import re
 import json
 import logging
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 from docx import Document
 from openpyxl import load_workbook
 
@@ -32,13 +32,11 @@ ROLE_COMPILER = re.compile(
     re.IGNORECASE
 )
 
-# Шаблон поиска ученых степеней, званий и должностей
 DEGREE_PATTERN = re.compile(
     r"(?:преподаватель|доцент|профессор|ассистент|к\.?\s*[тфмэ]\.?\s*н\.?|д\.?\s*[тфмэ]\.?\s*н\.?|ст\.?\s*преп)",
     re.IGNORECASE
 )
 
-# Стоп-фразы, прерывающие сканирование блока составителей РП
 STOP_COMPILER_PHRASES = [
     "рабочая программа составлена",
     "в соответствии с требованиями",
@@ -50,7 +48,6 @@ STOP_COMPILER_PHRASES = [
     "декан"
 ]
 
-# Шаблоны метаданных учебного плана
 DIRECTION_ROLE = re.compile(r"(?:направление|специальность|подготовк\w*)\b", re.IGNORECASE)
 CODE_PATTERN = re.compile(r"(\d{2}\.\d{2}\.\d{2})")
 PROFILE_ROLE = re.compile(r"(?:направленность|профиль|программа/специализация|специализация)\b", re.IGNORECASE)
@@ -59,14 +56,12 @@ DISCIPLINE_ROLE = re.compile(
     re.IGNORECASE
 )
 
-# Шаблон поиска ФИО с инициалами
 INITIALS_PATTERN = re.compile(
     r'(?:[А-Я]\s*\.\s*[А-Я]\s*\.\s*[А-Я][а-я]+|[А-Я][а-я]+\s+[А-Я]\s*\.\s*[А-Я]\s*\.)'
 )
 
 
 def clean_text(text: str) -> str:
-    """Нормализует пробелы и удаляет артефакты форматирования подписей."""
     if not text:
         return ""
     s = re.sub(r'[_/\\|]+', ' ', text)
@@ -75,7 +70,6 @@ def clean_text(text: str) -> str:
 
 
 def clean_fio_spaces(name_str: str) -> str:
-    """Приводит ФИО с инициалами к единому стандартному виду."""
     s = clean_text(name_str)
     s = re.sub(r'([А-Я]\.)\s+([А-Я]\.)', r'\1\2', s)
     s = re.sub(r'([А-Я][а-я]+)([А-Я]\.[А-Я]\.)', r'\1 \2', s)
@@ -84,7 +78,6 @@ def clean_fio_spaces(name_str: str) -> str:
 
 
 def has_name_pattern(text: str) -> bool:
-    """Проверяет, содержит ли строка упоминание имени или фамилии составителя."""
     if INITIALS_PATTERN.search(text):
         return True
     capitalized = re.findall(r'\b[А-Я][а-я]+\b', text)
@@ -93,8 +86,7 @@ def has_name_pattern(text: str) -> bool:
     return False
 
 
-def split_compiler_name_and_degree(compiler_str: str) -> tuple[str, str]:
-    """Разделяет ФИО преподавателя и его ученые степени/звания."""
+def split_compiler_name_and_degree(compiler_str: str) -> Tuple[str, str]:
     parts = compiler_str.split(",", 1)
     name = clean_text(parts[0])
     degree = clean_text(parts[1]) if len(parts) > 1 else ""
@@ -103,7 +95,6 @@ def split_compiler_name_and_degree(compiler_str: str) -> tuple[str, str]:
 
 
 def levenshtein_distance(s1: str, s2: str) -> int:
-    """Вычисляет редакционное расстояние Левенштейна между строками."""
     if len(s1) < len(s2):
         return levenshtein_distance(s2, s1)
     if len(s2) == 0:
@@ -123,31 +114,25 @@ def levenshtein_distance(s1: str, s2: str) -> int:
 
 
 def is_similar_name(name1: str, name2: str) -> bool:
-    """Нечетко сравнивает два ФИО на предмет опечаток или сокращений до инициалов."""
     n1 = name1.lower().replace("ё", "е").strip()
     n2 = name2.lower().replace("ё", "е").strip()
 
     if n1 == n2:
         return True
 
-    # Разбиваем на слова для анализа фамилии и инициалов
     w1 = [w for w in re.split(r'[^а-яa-z]', n1) if w]
     w2 = [w for w in re.split(r'[^а-яa-z]', n2) if w]
 
     if not w1 or not w2:
         return False
 
-    # Фамилия (обычно идет первым словом)
     surname1, surname2 = w1[0], w2[0]
 
-    # Допускаем опечатку в 1 символ в фамилии (например, Нефедов/Нефёдов или окончание)
     if levenshtein_distance(surname1, surname2) <= 1:
-        # Извлекаем первые буквы имени и отчества
         init1 = "".join([w[0] for w in w1[1:] if len(w) > 0])
         init2 = "".join([w[0] for w in w2[1:] if len(w) > 0])
 
         if init1 and init2:
-            # Сопоставляем по минимальной длине инициалов (например, "дг" совпадет с "денисгеннадьевич")
             min_len = min(len(init1), len(init2))
             if init1[:min_len] == init2[:min_len]:
                 return True
@@ -155,7 +140,6 @@ def is_similar_name(name1: str, name2: str) -> bool:
 
 
 def find_person_by_role(lines: List[str], role_regex: re.Pattern, name_regex: re.Pattern, scan_offset: int = 4) -> str:
-    """Ищет должностное лицо по гибкому шаблону роли в окрестности совпадения."""
     for idx, line in enumerate(lines):
         line_clean = clean_text(line)
         if role_regex.search(line_clean):
@@ -169,7 +153,6 @@ def find_person_by_role(lines: List[str], role_regex: re.Pattern, name_regex: re
 
 
 def extract_default_personnel_from_excel(sheet) -> Dict[str, str]:
-    """Парсит лист 'Титул' и извлекает должностных лиц по умолчанию для выпускающей кафедры."""
     default_staff = {
         "dean": "",
         "head_of_department": "",
@@ -226,7 +209,6 @@ def extract_default_personnel_from_excel(sheet) -> Dict[str, str]:
 
 
 def parse_rp_file(file_path: Path) -> Optional[dict]:
-    """Анализирует docx файл РП с использованием гибких регулярных выражений."""
     try:
         doc = Document(file_path)
     except Exception as e:
@@ -249,7 +231,6 @@ def parse_rp_file(file_path: Path) -> Optional[dict]:
                         if line_strip and line_strip not in lines:
                             lines.append(line_strip)
 
-    # 1. Извлечение направления (код и наименование)
     direction_code = ""
     direction_name = ""
     for idx, line in enumerate(lines):
@@ -267,7 +248,6 @@ def parse_rp_file(file_path: Path) -> Optional[dict]:
                         direction_name = pot_name
                 break
 
-    # 2. Извлечение профиля/направленности
     profile = ""
     for idx, line in enumerate(lines):
         line_clean = clean_text(line)
@@ -286,7 +266,6 @@ def parse_rp_file(file_path: Path) -> Optional[dict]:
                             break
 
             if pot_profile:
-                # Универсальное отсечение остатков левых скобок
                 pot_profile = re.sub(r"^.*?\)\s*", "", pot_profile)
                 pot_profile = re.sub(r'(?:наименование|полностью).*', '', pot_profile, flags=re.IGNORECASE).strip()
                 pot_profile = re.sub(r'^[-\s,.:\)]+', '', pot_profile).strip()
@@ -294,7 +273,6 @@ def parse_rp_file(file_path: Path) -> Optional[dict]:
                     profile = pot_profile
                     break
 
-    # 3. Извлечение названия дисциплины
     discipline = ""
     for idx, line in enumerate(lines):
         line_clean = clean_text(line)
@@ -308,12 +286,10 @@ def parse_rp_file(file_path: Path) -> Optional[dict]:
             if discipline:
                 break
 
-    # 4. Извлечение должностных лиц
     dean = find_person_by_role(lines, ROLE_DEAN, INITIALS_PATTERN, scan_offset=4)
     head_of_department = find_person_by_role(lines, ROLE_HEAD, INITIALS_PATTERN, scan_offset=4)
     program_director = find_person_by_role(lines, ROLE_DIRECTOR, INITIALS_PATTERN, scan_offset=4)
 
-    # 5. Извлечение списка составителей РП
     raw_compilers: List[str] = []
     for idx, line in enumerate(lines):
         line_clean = clean_text(line)
@@ -366,157 +342,293 @@ def parse_rp_file(file_path: Path) -> Optional[dict]:
     }
 
 
+class PersonnelExtractor:
+    """Класс-экстрактор для сбора и нормализации должностных лиц по реляционной схеме."""
+
+    def __init__(self, excel_path: Optional[Path] = None, rp_folder: Optional[Path] = None):
+        self.excel_path = excel_path
+        self.rp_folder = rp_folder
+
+    def extract(self) -> Dict[str, Any]:
+        """Запускает конвейер извлечения и нормализации данных."""
+        default_staff = {}
+
+        # 1. Сбор должностных лиц кафедры по умолчанию из Excel
+        if self.excel_path and self.excel_path.exists():
+            logger.info(f"Парсинг листа 'Титул' из Excel плана: {self.excel_path.name}...")
+            try:
+                wb = load_workbook(str(self.excel_path.absolute()), data_only=True)
+                if "Титул" in wb.sheetnames:
+                    default_staff = extract_default_personnel_from_excel(wb["Титул"])
+                    logger.info(f"  [+] Извлечены должностные лица по умолчанию: {default_staff}")
+                else:
+                    logger.warning("Лист 'Титул' не обнаружен в Excel.")
+            except Exception as e:
+                logger.error(f"Не удалось распарсить Excel: {e}")
+
+        # 2. Сбор сырых данных из Word-файлов
+        raw_subjects: Dict[str, Dict[str, Any]] = {}
+        if self.rp_folder and self.rp_folder.exists():
+            docx_files = list(self.rp_folder.glob("*.docx"))
+            logger.info(f"Найдено файлов для анализа: {len(docx_files)}")
+
+            for docx_path in docx_files:
+                if docx_path.name.startswith("~$"):
+                    continue
+
+                logger.info(f"Анализ файла РП: {docx_path.name}")
+                result = parse_rp_file(docx_path)
+                if result:
+                    dir_key = result["direction"]
+                    disc_key = result["discipline"]
+
+                    if dir_key not in raw_subjects:
+                        raw_subjects[dir_key] = {}
+
+                    extracted_data = result["data"]
+
+                    # Наложение значений по умолчанию, если поля пустые
+                    for key in ["dean", "head_of_department", "program_director"]:
+                        if not extracted_data.get(key) and default_staff.get(key):
+                            extracted_data[key] = default_staff[key]
+
+                    raw_subjects[dir_key][disc_key] = extracted_data
+                    logger.info(f"  [+] Собран профиль для: {disc_key} ({dir_key})")
+        else:
+            logger.warning("Папка с Word РП не найдена или не указана.")
+
+        # 3. Нормализация сущностей по реляционному принципу (БД)
+        return self._normalize_all_entities(raw_subjects, default_staff)
+
+    def _cluster_names(self, raw_names: List[str], prefix: str) -> Tuple[Dict[str, Any], Dict[str, str]]:
+        """Группирует вариации имен людей и генерирует словарь сущностей и lookup карту."""
+        clusters = []
+        for r_name in raw_names:
+            c_name = clean_fio_spaces(r_name)
+            if not c_name:
+                continue
+            matched_cluster = None
+            for cl in clusters:
+                canonical_name = max(cl["names_freq"], key=cl["names_freq"].get)
+                if is_similar_name(c_name, canonical_name):
+                    matched_cluster = cl
+                    break
+            if matched_cluster is None:
+                matched_cluster = {"names_freq": {}}
+                clusters.append(matched_cluster)
+            matched_cluster["names_freq"][c_name] = matched_cluster["names_freq"].get(c_name, 0) + 1
+
+        entities = {}
+        lookup = {}
+        for idx, cl in enumerate(clusters, start=1):
+            entity_id = f"{prefix}{idx}"
+            canonical_name = max(cl["names_freq"], key=cl["names_freq"].get)
+            entities[entity_id] = {"name": canonical_name}
+
+            for var_name in cl["names_freq"]:
+                lookup[var_name.lower()] = entity_id
+
+        return entities, lookup
+
+    def _cluster_profiles(self, raw_profiles: List[str]) -> Tuple[Dict[str, Any], Dict[str, str]]:
+        """Нормализует длинные текстовые названия профилей, удаляя дубли по содержанию."""
+        entities = {}
+        lookup = {}
+        seen_profiles = {}
+
+        idx = 1
+        for prof in raw_profiles:
+            clean_prof = clean_text(prof)
+            if not clean_prof:
+                continue
+            norm_prof = " ".join(clean_prof.lower().split())
+            if norm_prof not in seen_profiles:
+                entity_id = f"profile_{idx}"
+                seen_profiles[norm_prof] = entity_id
+                entities[entity_id] = {"name": clean_prof}
+                idx += 1
+
+            lookup[clean_prof.lower()] = seen_profiles[norm_prof]
+
+        return entities, lookup
+
+    def _normalize_teachers(self, raw_subjects: Dict[str, Dict[str, Any]]) -> Tuple[Dict[str, Any], Dict[str, str]]:
+        """Выделяет канонические записи преподавателей и строит lookup карту."""
+        raw_compilers_seen = []
+        for dir_key, subjects in raw_subjects.items():
+            for disc_key, data in subjects.items():
+                for comp_str in data.get("compilers", []):
+                    name, degree = split_compiler_name_and_degree(comp_str)
+                    if name:
+                        raw_compilers_seen.append((comp_str, name, degree))
+
+        clusters = []
+        for raw_str, name, degree in raw_compilers_seen:
+            matched_cluster = None
+            for cl in clusters:
+                canonical_name = max(cl["names_freq"], key=cl["names_freq"].get)
+                if is_similar_name(name, canonical_name):
+                    matched_cluster = cl
+                    break
+
+            if matched_cluster is None:
+                matched_cluster = {
+                    "names_freq": {},
+                    "degrees_freq": {},
+                    "raw_strings": set()
+                }
+                clusters.append(matched_cluster)
+
+            matched_cluster["names_freq"][name] = matched_cluster["names_freq"].get(name, 0) + 1
+            if degree:
+                matched_cluster["degrees_freq"][degree] = matched_cluster["degrees_freq"].get(degree, 0) + 1
+            matched_cluster["raw_strings"].add(raw_str)
+
+        teachers_dict = {}
+        raw_to_teacher_id = {}
+
+        for idx, cl in enumerate(clusters, start=1):
+            teacher_id = f"teacher_{idx}"
+            canonical_name = max(cl["names_freq"], key=cl["names_freq"].get)
+
+            canonical_degree = ""
+            if cl["degrees_freq"]:
+                canonical_degree = max(cl["degrees_freq"], key=lambda k: (cl["degrees_freq"][k], len(k)))
+
+            teachers_dict[teacher_id] = {
+                "name": canonical_name,
+                "degree_and_title": canonical_degree
+            }
+
+            for raw_str in cl["raw_strings"]:
+                raw_to_teacher_id[raw_str.lower()] = teacher_id
+
+        return teachers_dict, raw_to_teacher_id
+
+    def _lookup_id(self, val: str, lookup_dict: Dict[str, str]) -> str:
+        if not val:
+            return ""
+        return lookup_dict.get(clean_text(val).lower(), "")
+
+    def _normalize_all_entities(self, raw_subjects: Dict[str, Dict[str, Any]], default_staff: Dict[str, str]) -> Dict[
+        str, Any]:
+        """Группирует все упоминания в единую структуру реляционных данных."""
+
+        # Сбор сырых значений для каждого типа сущностей
+        raw_deans = []
+        raw_heads = []
+        raw_pds = []
+        raw_umk = []
+        raw_oamr = []
+        raw_profiles = []
+
+        # Сбор из дефолтных настроек Excel
+        if default_staff.get("dean"):
+            raw_deans.append(default_staff["dean"])
+        if default_staff.get("head_of_department"):
+            raw_heads.append(default_staff["head_of_department"])
+        if default_staff.get("program_director"):
+            raw_pds.append(default_staff["program_director"])
+        if default_staff.get("umk_chairman"):
+            raw_umk.append(default_staff["umk_chairman"])
+        if default_staff.get("oamr_head"):
+            raw_oamr.append(default_staff["oamr_head"])
+
+        # Сбор из распарсенных Word РП
+        for dir_key, subjects in raw_subjects.items():
+            for disc_key, data in subjects.items():
+                if data.get("dean"):
+                    raw_deans.append(data["dean"])
+                if data.get("head_of_department"):
+                    raw_heads.append(data["head_of_department"])
+                if data.get("program_director"):
+                    raw_pds.append(data["program_director"])
+                if data.get("profile"):
+                    raw_profiles.append(data["profile"])
+
+        # Вызов кластеризации для всех справочников
+        deans_dict, deans_lookup = self._cluster_names(raw_deans, "dean_")
+        heads_dict, heads_lookup = self._cluster_names(raw_heads, "hod_")
+        pds_dict, pds_lookup = self._cluster_names(raw_pds, "pd_")
+        umk_dict, umk_lookup = self._cluster_names(raw_umk, "umk_")
+        oamr_dict, oamr_lookup = self._cluster_names(raw_oamr, "oamr_")
+        profiles_dict, profiles_lookup = self._cluster_profiles(raw_profiles)
+        teachers_dict, teachers_lookup = self._normalize_teachers(raw_subjects)
+
+        # Нормализация значений по умолчанию
+        mapped_default_staff = {
+            "dean": self._lookup_id(default_staff.get("dean"), deans_lookup),
+            "head_of_department": self._lookup_id(default_staff.get("head_of_department"), heads_lookup),
+            "program_director": self._lookup_id(default_staff.get("program_director"), pds_lookup),
+            "umk_chairman": self._lookup_id(default_staff.get("umk_chairman"), umk_lookup),
+            "oamr_head": self._lookup_id(default_staff.get("oamr_head"), oamr_lookup)
+        }
+
+        # Связывание в subjects_mapping по идентификаторам
+        subjects_mapping = {}
+        for dir_key, subjects in raw_subjects.items():
+            subjects_mapping[dir_key] = {}
+            for disc_key, data in subjects.items():
+
+                # Маппинг преподавателей
+                mapped_teacher_ids = []
+                for comp_str in data.get("compilers", []):
+                    tid = teachers_lookup.get(comp_str.lower())
+                    if tid and tid not in mapped_teacher_ids:
+                        mapped_teacher_ids.append(tid)
+
+                subjects_mapping[dir_key][disc_key] = {
+                    "profile": self._lookup_id(data.get("profile"), profiles_lookup),
+                    "dean": self._lookup_id(data.get("dean"), deans_lookup),
+                    "head_of_department": self._lookup_id(data.get("head_of_department"), heads_lookup),
+                    "program_director": self._lookup_id(data.get("program_director"), pds_lookup),
+                    "teachers": mapped_teacher_ids
+                }
+
+        return {
+            "default_department_personnel": mapped_default_staff,
+            "deans": deans_dict,
+            "heads_of_department": heads_dict,
+            "program_directors": pds_dict,
+            "umk_chairmen": umk_dict,
+            "oamr_heads": oamr_dict,
+            "profiles": profiles_dict,
+            "teachers": teachers_dict,
+            "subjects_mapping": subjects_mapping
+        }
+
+
 def main():
     print("=== Комплексный экстрактор и маппер должностных лиц РП ===")
 
     user_excel = input("Шаг 1. Введите путь к файлу Excel учебного плана (например, plan.xlsx): ").strip()
     if not user_excel:
         user_excel = "plan.xlsx"
-
     excel_path = Path(user_excel)
-    default_staff = {}
-    if excel_path.exists():
-        logger.info(f"Парсинг листа 'Титул' из Excel плана: {excel_path.name}...")
-        try:
-            wb = load_workbook(str(excel_path.absolute()), data_only=True)
-            if "Титул" in wb.sheetnames:
-                default_staff = extract_default_personnel_from_excel(wb["Титул"])
-                logger.info(f"  [+] Извлечены должностные лица по умолчанию: {default_staff}")
-            else:
-                logger.warning("Лист 'Титул' не обнаружен в Excel.")
-        except Exception as e:
-            logger.error(f"Не удалось распарсить Excel: {e}")
-    else:
-        logger.warning("Файл Excel не найден. Слияние с должностями по умолчанию будет пропущено.")
 
     user_rp_folder = input("\nШаг 2. Введите путь к папке с архивными файлами РП (docx): ").strip()
     if not user_rp_folder:
         user_rp_folder = "."
-
     rp_folder = Path(user_rp_folder)
-    subjects_mapping: Dict[str, Dict[str, Any]] = {}
 
-    if rp_folder.exists():
-        docx_files = list(rp_folder.glob("*.docx"))
-        print(f"Найдено файлов для анализа: {len(docx_files)}")
+    user_output_dir = input(
+        "\nШаг 3. Введите путь к папке для сохранения итогового JSON (по умолчанию 'services/rp_generator'): ").strip()
+    if not user_output_dir:
+        user_output_dir = "services/rp_generator"
 
-        for docx_path in docx_files:
-            if docx_path.name.startswith("~$"):
-                continue
-
-            logger.info(f"Анализ файла РП: {docx_path.name}")
-            result = parse_rp_file(docx_path)
-            if result:
-                dir_key = result["direction"]
-                disc_key = result["discipline"]
-
-                if dir_key not in subjects_mapping:
-                    subjects_mapping[dir_key] = {}
-
-                extracted_data = result["data"]
-
-                # Слияние с должностями по умолчанию из Excel
-                for key in ["dean", "head_of_department", "program_director"]:
-                    if not extracted_data.get(key) and default_staff.get(key):
-                        extracted_data[key] = default_staff[key]
-                        logger.info(
-                            f"    [*] Поле '{key}' заполнено значением по умолчанию из Excel: {default_staff[key]}")
-
-                subjects_mapping[dir_key][disc_key] = extracted_data
-                logger.info(f"  [+] Успешно сопоставлены кадры для: {disc_key} ({dir_key})")
-    else:
-        logger.warning("Папка с Word РП не найдена или пропущена.")
-
-    # === АЛГОРИТМ НЕЧЕТКОЙ КЛАСТЕРИЗАЦИИ И ЧАСТОТНОГО ВЫБОРА (MAJORITY VOTING) ===
-    # Сначала собираем все "сырые" упоминания преподавателей со всех файлов
-    raw_occurrences = []
-    for dir_key, subjects in subjects_mapping.items():
-        for disc_key, data in subjects.items():
-            compilers_list = data.get("compilers", [])
-            for comp_str in compilers_list:
-                name, degree = split_compiler_name_and_degree(comp_str)
-                if name:
-                    raw_occurrences.append({
-                        "name": name,
-                        "degree": degree,
-                        "discipline": disc_key,
-                        "direction": dir_key,
-                        "profile": data.get("profile", ""),
-                        "dean": data.get("dean", ""),
-                        "head_of_department": data.get("head_of_department", ""),
-                        "program_director": data.get("program_director", "")
-                    })
-
-    # Группируем схожие записи в кластеры
-    clusters = []  # Список словарей: {"names_freq": {}, "degrees_freq": {}, "disciplines": []}
-
-    for occ in raw_occurrences:
-        occ_name = occ["name"]
-        occ_degree = occ["degree"]
-
-        matched_cluster = None
-        for cl in clusters:
-            # Сравниваем с наиболее популярным вариантом имени в текущем кластере
-            canonical_name = max(cl["names_freq"], key=cl["names_freq"].get)
-            if is_similar_name(occ_name, canonical_name):
-                matched_cluster = cl
-                break
-
-        if matched_cluster is None:
-            matched_cluster = {
-                "names_freq": {},
-                "degrees_freq": {},
-                "disciplines": []
-            }
-            clusters.append(matched_cluster)
-
-        # Подсчет частоты упоминаний вариантов ФИО и ученых степеней
-        matched_cluster["names_freq"][occ_name] = matched_cluster["names_freq"].get(occ_name, 0) + 1
-        if occ_degree:
-            matched_cluster["degrees_freq"][occ_degree] = matched_cluster["degrees_freq"].get(occ_degree, 0) + 1
-
-        matched_cluster["disciplines"].append({
-            "name": occ["discipline"],
-            "direction": occ["direction"],
-            "profile": occ["profile"],
-            "dean": occ["dean"],
-            "head_of_department": occ["head_of_department"],
-            "program_director": occ["program_director"]
-        })
-
-    # Формируем итоговый маппинг по каноническим преподавателям
-    teachers_mapping: Dict[str, Dict[str, Any]] = {}
-    for cl in clusters:
-        # Выбираем самый часто встречающийся вариант ФИО (Majority Voting)
-        canonical_name = max(cl["names_freq"], key=cl["names_freq"].get)
-
-        # Выбираем наиболее полную или часто встречающуюся ученую степень/звание
-        canonical_degree = ""
-        if cl["degrees_freq"]:
-            # Приоритет отдается наиболее часто встречающемуся значению, а при равенстве - более длинному
-            canonical_degree = max(cl["degrees_freq"], key=lambda k: (cl["degrees_freq"][k], len(k)))
-
-        teachers_mapping[canonical_name] = {
-            "degree_and_title": canonical_degree,
-            "disciplines": cl["disciplines"],
-            "variations_found": cl["names_freq"]  # Полезно для отладки
-        }
-
-    output_mapping_path = Path("services/rp_generator/rp_personnel_mapping.json")
-    output_mapping_path.parent.mkdir(parents=True, exist_ok=True)
-
-    final_output = {
-        "default_department_personnel": default_staff,
-        "teachers_mapping": teachers_mapping
-    }
-
+    extractor = PersonnelExtractor(excel_path=excel_path, rp_folder=rp_folder)
     try:
+        final_output = extractor.extract()
+
+        output_dir = Path(user_output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_mapping_path = output_dir / "rp_personnel_mapping.json"
+
         with open(output_mapping_path, "w", encoding="utf-8") as f:
             json.dump(final_output, f, ensure_ascii=False, indent=2)
-        print(
-            f"\n[Успешно] Маппинг преподавателей с нечетким сопоставлением сохранен в:\n{output_mapping_path.absolute()}")
+        print(f"\n[Успешно] Данные по кадровому составу РП сохранены в:\n{output_mapping_path.absolute()}")
     except Exception as e:
-        logger.error(f"Не удалось сохранить итоговый JSON: {e}")
+        logger.error(f"Не удалось завершить извлечение данных: {e}", exc_info=True)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,2704 @@
+{
+  "metadata": {
+    "qualification": "бакалавр",
+    "education_form": "Очная",
+    "study_duration": "4 г.",
+    "start_year": "2026",
+    "academic_year": "2026-2027",
+    "fgos_standard": "№ 11 от 10.01.2018",
+    "faculty": "Математика и естественные науки",
+    "department": "Прикладная математика и информационные технологии",
+    "direction_code": "",
+    "direction_name": "",
+    "profile": "Применение математических методов и программных средств для решения инженерных и экономических задач"
+  },
+  "disciplines": {
+    "Б1.О.01": {
+      "code": "Б1.О.01",
+      "name": "История России",
+      "department_code": 1,
+      "department_name": "Общественные науки",
+      "credit_units": 4,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [],
+        "graded_credits": [
+          1
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 80,
+        "laboratory_works": 0,
+        "practical_classes": 36,
+        "self_study": 26,
+        "total": 142
+      },
+      "load_by_semester": {
+        "1": {
+          "lectures": 80,
+          "laboratory_works": 0,
+          "practical_classes": 36,
+          "self_study": 26
+        }
+      }
+    },
+    "Б1.О.02": {
+      "code": "Б1.О.02",
+      "name": "Основы деловой коммуникации",
+      "department_code": 69,
+      "department_name": "Лингвистика",
+      "credit_units": 2,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          3
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 0,
+        "practical_classes": 16,
+        "self_study": 38,
+        "total": 70
+      },
+      "load_by_semester": {
+        "3": {
+          "lectures": 16,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 38
+        }
+      }
+    },
+    "Б1.О.03": {
+      "code": "Б1.О.03",
+      "name": "Иностранный язык",
+      "department_code": 13,
+      "department_name": "Английский язык",
+      "credit_units": 5,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [
+          2
+        ],
+        "credits": [
+          1
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 0,
+        "laboratory_works": 64,
+        "practical_classes": 0,
+        "self_study": 78,
+        "total": 142
+      },
+      "load_by_semester": {
+        "1": {
+          "lectures": 0,
+          "laboratory_works": 32,
+          "practical_classes": 0,
+          "self_study": 38
+        },
+        "2": {
+          "lectures": 0,
+          "laboratory_works": 32,
+          "practical_classes": 0,
+          "self_study": 40
+        }
+      }
+    },
+    "Б1.О.04": {
+      "code": "Б1.О.04",
+      "name": "Дискретная математика",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 4,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [
+          1
+        ],
+        "credits": [],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 0,
+        "practical_classes": 32,
+        "self_study": 60,
+        "total": 108
+      },
+      "load_by_semester": {
+        "1": {
+          "lectures": 16,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 60
+        }
+      }
+    },
+    "Б1.О.05": {
+      "code": "Б1.О.05",
+      "name": "Социальное взаимодействие",
+      "department_code": 1,
+      "department_name": "Общественные науки",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          2
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 32,
+        "laboratory_works": 0,
+        "practical_classes": 16,
+        "self_study": 58,
+        "total": 106
+      },
+      "load_by_semester": {
+        "2": {
+          "lectures": 32,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 58
+        }
+      }
+    },
+    "Б1.О.06": {
+      "code": "Б1.О.06",
+      "name": "Основы экономики",
+      "department_code": 63,
+      "department_name": "Финансы и кредит",
+      "credit_units": 2,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          1
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 0,
+        "practical_classes": 16,
+        "self_study": 38,
+        "total": 70
+      },
+      "load_by_semester": {
+        "1": {
+          "lectures": 16,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 38
+        }
+      }
+    },
+    "Б1.О.07": {
+      "code": "Б1.О.07",
+      "name": "Философия",
+      "department_code": 1,
+      "department_name": "Общественные науки",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          3
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 32,
+        "laboratory_works": 0,
+        "practical_classes": 16,
+        "self_study": 58,
+        "total": 106
+      },
+      "load_by_semester": {
+        "3": {
+          "lectures": 32,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 58
+        }
+      }
+    },
+    "Б1.О.08": {
+      "code": "Б1.О.08",
+      "name": "Математический анализ",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 17,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [
+          1,
+          2,
+          3
+        ],
+        "credits": [],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 128,
+        "laboratory_works": 0,
+        "practical_classes": 144,
+        "self_study": 232,
+        "total": 504
+      },
+      "load_by_semester": {
+        "1": {
+          "lectures": 48,
+          "laboratory_works": 0,
+          "practical_classes": 48,
+          "self_study": 84
+        },
+        "2": {
+          "lectures": 32,
+          "laboratory_works": 0,
+          "practical_classes": 48,
+          "self_study": 64
+        },
+        "3": {
+          "lectures": 48,
+          "laboratory_works": 0,
+          "practical_classes": 48,
+          "self_study": 84
+        }
+      }
+    },
+    "Б1.О.09": {
+      "code": "Б1.О.09",
+      "name": "Линейная алгебра и аналитическая геометрия",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 10,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [
+          2
+        ],
+        "credits": [],
+        "graded_credits": [
+          1
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 64,
+        "laboratory_works": 0,
+        "practical_classes": 80,
+        "self_study": 178,
+        "total": 322
+      },
+      "load_by_semester": {
+        "1": {
+          "lectures": 32,
+          "laboratory_works": 0,
+          "practical_classes": 48,
+          "self_study": 98
+        },
+        "2": {
+          "lectures": 32,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 80
+        }
+      }
+    },
+    "Б1.О.10": {
+      "code": "Б1.О.10",
+      "name": "Физика",
+      "department_code": 33,
+      "department_name": "Физика и оптотехника",
+      "credit_units": 12,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [
+          3
+        ],
+        "credits": [],
+        "graded_credits": [
+          2
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 80,
+        "laboratory_works": 32,
+        "practical_classes": 64,
+        "self_study": 218,
+        "total": 394
+      },
+      "load_by_semester": {
+        "2": {
+          "lectures": 32,
+          "laboratory_works": 16,
+          "practical_classes": 32,
+          "self_study": 134
+        },
+        "3": {
+          "lectures": 48,
+          "laboratory_works": 16,
+          "practical_classes": 32,
+          "self_study": 84
+        }
+      }
+    },
+    "Б1.О.11": {
+      "code": "Б1.О.11",
+      "name": "Информационные технологии и программирование",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 11,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [
+          1
+        ],
+        "credits": [],
+        "graded_credits": [
+          2,
+          3
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 48,
+        "laboratory_works": 48,
+        "practical_classes": 48,
+        "self_study": 212,
+        "total": 356
+      },
+      "load_by_semester": {
+        "1": {
+          "lectures": 16,
+          "laboratory_works": 16,
+          "practical_classes": 16,
+          "self_study": 60
+        },
+        "2": {
+          "lectures": 16,
+          "laboratory_works": 16,
+          "practical_classes": 16,
+          "self_study": 58
+        },
+        "3": {
+          "lectures": 16,
+          "laboratory_works": 16,
+          "practical_classes": 16,
+          "self_study": 94
+        }
+      }
+    },
+    "Б1.О.12": {
+      "code": "Б1.О.12",
+      "name": "Математическая логика",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          3
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 32,
+        "laboratory_works": 0,
+        "practical_classes": 16,
+        "self_study": 58,
+        "total": 106
+      },
+      "load_by_semester": {
+        "3": {
+          "lectures": 32,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 58
+        }
+      }
+    },
+    "Б1.О.13": {
+      "code": "Б1.О.13",
+      "name": "Дифференциальные уравнения",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 4,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [
+          3
+        ],
+        "credits": [],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 0,
+        "practical_classes": 32,
+        "self_study": 60,
+        "total": 108
+      },
+      "load_by_semester": {
+        "3": {
+          "lectures": 16,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 60
+        }
+      }
+    },
+    "Б1.О.14": {
+      "code": "Б1.О.14",
+      "name": "Правоведение",
+      "department_code": 68,
+      "department_name": "Юриспруденция",
+      "credit_units": 2,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          3
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 0,
+        "practical_classes": 16,
+        "self_study": 38,
+        "total": 70
+      },
+      "load_by_semester": {
+        "3": {
+          "lectures": 16,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 38
+        }
+      }
+    },
+    "Б1.О.15": {
+      "code": "Б1.О.15",
+      "name": "Основы функционального анализа",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 4,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [
+          4
+        ],
+        "credits": [],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 32,
+        "laboratory_works": 0,
+        "practical_classes": 16,
+        "self_study": 60,
+        "total": 108
+      },
+      "load_by_semester": {
+        "4": {
+          "lectures": 32,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 60
+        }
+      }
+    },
+    "Б1.О.16": {
+      "code": "Б1.О.16",
+      "name": "Теория функций комплексного переменного",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [],
+        "graded_credits": [
+          4
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 0,
+        "practical_classes": 32,
+        "self_study": 58,
+        "total": 106
+      },
+      "load_by_semester": {
+        "4": {
+          "lectures": 16,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 58
+        }
+      }
+    },
+    "Б1.О.17": {
+      "code": "Б1.О.17",
+      "name": "Основы проектной деятельности",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 2,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          3
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 0,
+        "practical_classes": 16,
+        "self_study": 38,
+        "total": 70
+      },
+      "load_by_semester": {
+        "3": {
+          "lectures": 16,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 38
+        }
+      }
+    },
+    "Б1.О.18": {
+      "code": "Б1.О.18",
+      "name": "Теория вероятностей и математическая статистика",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 5,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          4
+        ],
+        "graded_credits": [
+          5
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 32,
+        "laboratory_works": 16,
+        "practical_classes": 32,
+        "self_study": 96,
+        "total": 176
+      },
+      "load_by_semester": {
+        "4": {
+          "lectures": 16,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 38
+        },
+        "5": {
+          "lectures": 16,
+          "laboratory_works": 16,
+          "practical_classes": 16,
+          "self_study": 58
+        }
+      }
+    },
+    "Б1.О.19": {
+      "code": "Б1.О.19",
+      "name": "Уравнения математической физики",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [
+          5
+        ],
+        "credits": [],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 0,
+        "practical_classes": 32,
+        "self_study": 24,
+        "total": 72
+      },
+      "load_by_semester": {
+        "5": {
+          "lectures": 16,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 24
+        }
+      }
+    },
+    "Б1.О.20": {
+      "code": "Б1.О.20",
+      "name": "Численные методы алгебры",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 4,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [
+          5
+        ],
+        "credits": [],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 32,
+        "laboratory_works": 16,
+        "practical_classes": 0,
+        "self_study": 60,
+        "total": 108
+      },
+      "load_by_semester": {
+        "5": {
+          "lectures": 32,
+          "laboratory_works": 16,
+          "practical_classes": 0,
+          "self_study": 60
+        }
+      }
+    },
+    "Б1.О.21": {
+      "code": "Б1.О.21",
+      "name": "Методы оптимизации",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 4,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [
+          6
+        ],
+        "credits": [],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 32,
+        "laboratory_works": 16,
+        "practical_classes": 0,
+        "self_study": 60,
+        "total": 108
+      },
+      "load_by_semester": {
+        "6": {
+          "lectures": 32,
+          "laboratory_works": 16,
+          "practical_classes": 0,
+          "self_study": 60
+        }
+      }
+    },
+    "Б1.О.22": {
+      "code": "Б1.О.22",
+      "name": "Исследование операций",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          8
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 24,
+        "laboratory_works": 0,
+        "practical_classes": 12,
+        "self_study": 70,
+        "total": 106
+      },
+      "load_by_semester": {
+        "8": {
+          "lectures": 24,
+          "laboratory_works": 0,
+          "practical_classes": 12,
+          "self_study": 70
+        }
+      }
+    },
+    "Б1.О.23": {
+      "code": "Б1.О.23",
+      "name": "Физическая культура и спорт",
+      "department_code": 11,
+      "department_name": "Физическая культура и спорт",
+      "credit_units": 2,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          6
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 24,
+        "laboratory_works": 0,
+        "practical_classes": 8,
+        "self_study": 38,
+        "total": 70
+      },
+      "load_by_semester": {
+        "6": {
+          "lectures": 24,
+          "laboratory_works": 0,
+          "practical_classes": 8,
+          "self_study": 38
+        }
+      }
+    },
+    "Б1.О.24": {
+      "code": "Б1.О.24",
+      "name": "Теория случайных процессов и основы теории массового обслуживания",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 6,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [
+          7
+        ],
+        "credits": [
+          6
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 48,
+        "laboratory_works": 0,
+        "practical_classes": 32,
+        "self_study": 98,
+        "total": 178
+      },
+      "load_by_semester": {
+        "6": {
+          "lectures": 16,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 38
+        },
+        "7": {
+          "lectures": 32,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 60
+        }
+      }
+    },
+    "Б1.О.25": {
+      "code": "Б1.О.25",
+      "name": "Безопасность жизнедеятельности",
+      "department_code": 30,
+      "department_name": "Техносферная безопасность",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [],
+        "graded_credits": [
+          7
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 32,
+        "laboratory_works": 0,
+        "practical_classes": 16,
+        "self_study": 58,
+        "total": 106
+      },
+      "load_by_semester": {
+        "7": {
+          "lectures": 32,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 58
+        }
+      }
+    },
+    "Б1.О.26": {
+      "code": "Б1.О.26",
+      "name": "Компьютерные технологии математических исследований",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 7,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [
+          7
+        ],
+        "credits": [],
+        "graded_credits": [
+          8
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 40,
+        "laboratory_works": 40,
+        "practical_classes": 0,
+        "self_study": 134,
+        "total": 214
+      },
+      "load_by_semester": {
+        "7": {
+          "lectures": 16,
+          "laboratory_works": 16,
+          "practical_classes": 0,
+          "self_study": 76
+        },
+        "8": {
+          "lectures": 24,
+          "laboratory_works": 24,
+          "practical_classes": 0,
+          "self_study": 58
+        }
+      }
+    },
+    "Б1.О.27": {
+      "code": "Б1.О.27",
+      "name": "Компьютерная графика",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          8
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 12,
+        "laboratory_works": 24,
+        "practical_classes": 0,
+        "self_study": 70,
+        "total": 106
+      },
+      "load_by_semester": {
+        "8": {
+          "lectures": 12,
+          "laboratory_works": 24,
+          "practical_classes": 0,
+          "self_study": 70
+        }
+      }
+    },
+    "Б1.О.28": {
+      "code": "Б1.О.28",
+      "name": "Общая алгебра и теория чисел",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [],
+        "graded_credits": [
+          2
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 32,
+        "laboratory_works": 0,
+        "practical_classes": 16,
+        "self_study": 58,
+        "total": 106
+      },
+      "load_by_semester": {
+        "2": {
+          "lectures": 32,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 58
+        }
+      }
+    },
+    "Б1.О.29": {
+      "code": "Б1.О.29",
+      "name": "Комбинаторика и теория графов",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [
+          4
+        ],
+        "credits": [],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 0,
+        "practical_classes": 16,
+        "self_study": 40,
+        "total": 72
+      },
+      "load_by_semester": {
+        "4": {
+          "lectures": 16,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 40
+        }
+      }
+    },
+    "Б1.О.30": {
+      "code": "Б1.О.30",
+      "name": "Основы российской государственности",
+      "department_code": 1,
+      "department_name": "Общественные науки",
+      "credit_units": 2,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          2
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 0,
+        "practical_classes": 16,
+        "self_study": 38,
+        "total": 70
+      },
+      "load_by_semester": {
+        "2": {
+          "lectures": 16,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 38
+        }
+      }
+    },
+    "Б1.О.ДВ.01.01": {
+      "code": "Б1.О.ДВ.01.01",
+      "name": "Основы военной подготовки",
+      "department_code": 78,
+      "department_name": "Дистанционные технологии",
+      "credit_units": 2,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": {
+          "code": "Б1.О.ДВ.01",
+          "name": "Дисциплины по выбору Б1.О.ДВ.01"
+        }
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          5
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 0,
+        "practical_classes": 16,
+        "self_study": 38,
+        "total": 70
+      },
+      "load_by_semester": {
+        "5": {
+          "lectures": 16,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 38
+        }
+      }
+    },
+    "Б1.О.ДВ.01.02": {
+      "code": "Б1.О.ДВ.01.02",
+      "name": "Гражданская оборона",
+      "department_code": 30,
+      "department_name": "Техносферная безопасность",
+      "credit_units": 2,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Обязательная часть",
+        "elective_group": {
+          "code": "Б1.О.ДВ.01",
+          "name": "Дисциплины по выбору Б1.О.ДВ.01"
+        }
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          5
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 0,
+        "practical_classes": 16,
+        "self_study": 38,
+        "total": 70
+      },
+      "load_by_semester": {
+        "5": {
+          "lectures": 16,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 38
+        }
+      }
+    },
+    "Б1.В.01": {
+      "code": "Б1.В.01",
+      "name": "Введение в профессиональную деятельность",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 2,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          4
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": [
+          4
+        ]
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 0,
+        "practical_classes": 16,
+        "self_study": 37,
+        "total": 69
+      },
+      "load_by_semester": {
+        "4": {
+          "lectures": 16,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 37
+        }
+      }
+    },
+    "Б1.В.02": {
+      "code": "Б1.В.02",
+      "name": "Основы искусственного интеллекта и теории принятия решений",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 4,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [],
+        "graded_credits": [
+          4
+        ],
+        "course_projects": [
+          4
+        ],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 24,
+        "laboratory_works": 0,
+        "practical_classes": 16,
+        "self_study": 99,
+        "total": 139
+      },
+      "load_by_semester": {
+        "4": {
+          "lectures": 24,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 99
+        }
+      }
+    },
+    "Б1.В.03": {
+      "code": "Б1.В.03",
+      "name": "Дополнительные главы математического анализа",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          4
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 0,
+        "practical_classes": 16,
+        "self_study": 74,
+        "total": 106
+      },
+      "load_by_semester": {
+        "4": {
+          "lectures": 16,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 74
+        }
+      }
+    },
+    "Б1.В.04": {
+      "code": "Б1.В.04",
+      "name": "Объектно-ориентированное программирование",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 6,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          4
+        ],
+        "graded_credits": [
+          6
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 32,
+        "laboratory_works": 32,
+        "practical_classes": 16,
+        "self_study": 132,
+        "total": 212
+      },
+      "load_by_semester": {
+        "4": {
+          "lectures": 16,
+          "laboratory_works": 16,
+          "practical_classes": 0,
+          "self_study": 38
+        },
+        "6": {
+          "lectures": 16,
+          "laboratory_works": 16,
+          "practical_classes": 16,
+          "self_study": 94
+        }
+      }
+    },
+    "Б1.В.05": {
+      "code": "Б1.В.05",
+      "name": "Программирование для Интернет",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          5
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 24,
+        "practical_classes": 0,
+        "self_study": 66,
+        "total": 106
+      },
+      "load_by_semester": {
+        "5": {
+          "lectures": 16,
+          "laboratory_works": 24,
+          "practical_classes": 0,
+          "self_study": 66
+        }
+      }
+    },
+    "Б1.В.06": {
+      "code": "Б1.В.06",
+      "name": "Базы данных",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 6,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [
+          5
+        ],
+        "credits": [],
+        "graded_credits": [],
+        "course_projects": [
+          5
+        ],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 32,
+        "laboratory_works": 16,
+        "practical_classes": 16,
+        "self_study": 113,
+        "total": 177
+      },
+      "load_by_semester": {
+        "5": {
+          "lectures": 32,
+          "laboratory_works": 16,
+          "practical_classes": 16,
+          "self_study": 113
+        }
+      }
+    },
+    "Б1.В.07": {
+      "code": "Б1.В.07",
+      "name": "Механика сплошных сред",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 6,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          5
+        ],
+        "graded_credits": [
+          6
+        ],
+        "course_projects": [
+          6
+        ],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 48,
+        "laboratory_works": 0,
+        "practical_classes": 32,
+        "self_study": 129,
+        "total": 209
+      },
+      "load_by_semester": {
+        "5": {
+          "lectures": 32,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 58
+        },
+        "6": {
+          "lectures": 16,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 71
+        }
+      }
+    },
+    "Б1.В.08": {
+      "code": "Б1.В.08",
+      "name": "Технология программирования",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [
+          6
+        ],
+        "credits": [],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 16,
+        "practical_classes": 0,
+        "self_study": 40,
+        "total": 72
+      },
+      "load_by_semester": {
+        "6": {
+          "lectures": 16,
+          "laboratory_works": 16,
+          "practical_classes": 0,
+          "self_study": 40
+        }
+      }
+    },
+    "Б1.В.09": {
+      "code": "Б1.В.09",
+      "name": "Математическое моделирование",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 4,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [],
+        "graded_credits": [
+          7
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 32,
+        "laboratory_works": 16,
+        "practical_classes": 16,
+        "self_study": 78,
+        "total": 142
+      },
+      "load_by_semester": {
+        "7": {
+          "lectures": 32,
+          "laboratory_works": 16,
+          "practical_classes": 16,
+          "self_study": 78
+        }
+      }
+    },
+    "Б1.В.10": {
+      "code": "Б1.В.10",
+      "name": "Численные методы решения дифференциальных уравнений",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 4,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [
+          7
+        ],
+        "credits": [],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 16,
+        "practical_classes": 32,
+        "self_study": 44,
+        "total": 108
+      },
+      "load_by_semester": {
+        "7": {
+          "lectures": 16,
+          "laboratory_works": 16,
+          "practical_classes": 32,
+          "self_study": 44
+        }
+      }
+    },
+    "Б1.В.11": {
+      "code": "Б1.В.11",
+      "name": "Информационные технологии анализа и обработки данных",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 4,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          7
+        ],
+        "graded_credits": [],
+        "course_projects": [
+          7
+        ],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 16,
+        "practical_classes": 16,
+        "self_study": 91,
+        "total": 139
+      },
+      "load_by_semester": {
+        "7": {
+          "lectures": 16,
+          "laboratory_works": 16,
+          "practical_classes": 16,
+          "self_study": 91
+        }
+      }
+    },
+    "Б1.В.12": {
+      "code": "Б1.В.12",
+      "name": "Экономико-математические методы",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 6,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [],
+        "graded_credits": [
+          7,
+          8
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 44,
+        "laboratory_works": 28,
+        "practical_classes": 40,
+        "self_study": 100,
+        "total": 212
+      },
+      "load_by_semester": {
+        "7": {
+          "lectures": 32,
+          "laboratory_works": 16,
+          "practical_classes": 16,
+          "self_study": 42
+        },
+        "8": {
+          "lectures": 12,
+          "laboratory_works": 12,
+          "practical_classes": 24,
+          "self_study": 58
+        }
+      }
+    },
+    "Б1.В.13": {
+      "code": "Б1.В.13",
+      "name": "Проектирование программного обеспечения",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 4,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          8
+        ],
+        "graded_credits": [],
+        "course_projects": [
+          8
+        ],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 24,
+        "laboratory_works": 12,
+        "practical_classes": 12,
+        "self_study": 91,
+        "total": 139
+      },
+      "load_by_semester": {
+        "8": {
+          "lectures": 24,
+          "laboratory_works": 12,
+          "practical_classes": 12,
+          "self_study": 91
+        }
+      }
+    },
+    "Б1.В.14": {
+      "code": "Б1.В.14",
+      "name": "Теория управления",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [
+          8
+        ],
+        "credits": [],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 24,
+        "laboratory_works": 0,
+        "practical_classes": 12,
+        "self_study": 36,
+        "total": 72
+      },
+      "load_by_semester": {
+        "8": {
+          "lectures": 24,
+          "laboratory_works": 0,
+          "practical_classes": 12,
+          "self_study": 36
+        }
+      }
+    },
+    "Б1.В.15": {
+      "code": "Б1.В.15",
+      "name": "Программные и аппаратные средства информатики",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 2,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          4
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 16,
+        "practical_classes": 0,
+        "self_study": 38,
+        "total": 70
+      },
+      "load_by_semester": {
+        "4": {
+          "lectures": 16,
+          "laboratory_works": 16,
+          "practical_classes": 0,
+          "self_study": 38
+        }
+      }
+    },
+    "Б1.В.ДВ.01.01": {
+      "code": "Б1.В.ДВ.01.01",
+      "name": "Основы системного анализа",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": {
+          "code": "Б1.В.ДВ.01",
+          "name": "Дисциплины по выбору Б1.В.ДВ.01"
+        }
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [],
+        "graded_credits": [
+          5
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 32,
+        "practical_classes": 0,
+        "self_study": 58,
+        "total": 106
+      },
+      "load_by_semester": {
+        "5": {
+          "lectures": 16,
+          "laboratory_works": 32,
+          "practical_classes": 0,
+          "self_study": 58
+        }
+      }
+    },
+    "Б1.В.ДВ.01.02": {
+      "code": "Б1.В.ДВ.01.02",
+      "name": "Теория размещения производства",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": {
+          "code": "Б1.В.ДВ.01",
+          "name": "Дисциплины по выбору Б1.В.ДВ.01"
+        }
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [],
+        "graded_credits": [
+          5
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 32,
+        "practical_classes": 0,
+        "self_study": 58,
+        "total": 106
+      },
+      "load_by_semester": {
+        "5": {
+          "lectures": 16,
+          "laboratory_works": 32,
+          "practical_classes": 0,
+          "self_study": 58
+        }
+      }
+    },
+    "Б1.В.ДВ.02.01": {
+      "code": "Б1.В.ДВ.02.01",
+      "name": "Операционные системы и сети электронно-вычислительных машин",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": {
+          "code": "Б1.В.ДВ.02",
+          "name": "Дисциплины по выбору Б1.В.ДВ.02"
+        }
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          6
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 16,
+        "practical_classes": 16,
+        "self_study": 58,
+        "total": 106
+      },
+      "load_by_semester": {
+        "6": {
+          "lectures": 16,
+          "laboratory_works": 16,
+          "practical_classes": 16,
+          "self_study": 58
+        }
+      }
+    },
+    "Б1.В.ДВ.02.02": {
+      "code": "Б1.В.ДВ.02.02",
+      "name": "Параллельное программирование",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": {
+          "code": "Б1.В.ДВ.02",
+          "name": "Дисциплины по выбору Б1.В.ДВ.02"
+        }
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          6
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 16,
+        "practical_classes": 16,
+        "self_study": 58,
+        "total": 106
+      },
+      "load_by_semester": {
+        "6": {
+          "lectures": 16,
+          "laboratory_works": 16,
+          "practical_classes": 16,
+          "self_study": 58
+        }
+      }
+    },
+    "Б1.В.ДВ.03.01": {
+      "code": "Б1.В.ДВ.03.01",
+      "name": "Планирование и обработка эксперимента",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": {
+          "code": "Б1.В.ДВ.03",
+          "name": "Дисциплины по выбору Б1.В.ДВ.03"
+        }
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [],
+        "graded_credits": [
+          6
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 16,
+        "practical_classes": 0,
+        "self_study": 74,
+        "total": 106
+      },
+      "load_by_semester": {
+        "6": {
+          "lectures": 16,
+          "laboratory_works": 16,
+          "practical_classes": 0,
+          "self_study": 74
+        }
+      }
+    },
+    "Б1.В.ДВ.03.02": {
+      "code": "Б1.В.ДВ.03.02",
+      "name": "Логическое и функциональное программирование",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": {
+          "code": "Б1.В.ДВ.03",
+          "name": "Дисциплины по выбору Б1.В.ДВ.03"
+        }
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [],
+        "graded_credits": [
+          6
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 16,
+        "practical_classes": 0,
+        "self_study": 74,
+        "total": 106
+      },
+      "load_by_semester": {
+        "6": {
+          "lectures": 16,
+          "laboratory_works": 16,
+          "practical_classes": 0,
+          "self_study": 74
+        }
+      }
+    },
+    "Б1.В.ДВ.04.01": {
+      "code": "Б1.В.ДВ.04.01",
+      "name": "Эконометрика",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": {
+          "code": "Б1.В.ДВ.04",
+          "name": "Дисциплины по выбору Б1.В.ДВ.04"
+        }
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          7
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 16,
+        "practical_classes": 16,
+        "self_study": 58,
+        "total": 106
+      },
+      "load_by_semester": {
+        "7": {
+          "lectures": 16,
+          "laboratory_works": 16,
+          "practical_classes": 16,
+          "self_study": 58
+        }
+      }
+    },
+    "Б1.В.ДВ.04.02": {
+      "code": "Б1.В.ДВ.04.02",
+      "name": "Математические модели микроэкономики",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": {
+          "code": "Б1.В.ДВ.04",
+          "name": "Дисциплины по выбору Б1.В.ДВ.04"
+        }
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          7
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 16,
+        "practical_classes": 16,
+        "self_study": 58,
+        "total": 106
+      },
+      "load_by_semester": {
+        "7": {
+          "lectures": 16,
+          "laboratory_works": 16,
+          "practical_classes": 16,
+          "self_study": 58
+        }
+      }
+    },
+    "Б1.В.ДВ.05.01": {
+      "code": "Б1.В.ДВ.05.01",
+      "name": "Прикладная логистика",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": {
+          "code": "Б1.В.ДВ.05",
+          "name": "Дисциплины по выбору Б1.В.ДВ.05"
+        }
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          6
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 16,
+        "practical_classes": 16,
+        "self_study": 58,
+        "total": 106
+      },
+      "load_by_semester": {
+        "6": {
+          "lectures": 16,
+          "laboratory_works": 16,
+          "practical_classes": 16,
+          "self_study": 58
+        }
+      }
+    },
+    "Б1.В.ДВ.05.02": {
+      "code": "Б1.В.ДВ.05.02",
+      "name": "Математические модели макроэкономики",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": {
+          "code": "Б1.В.ДВ.05",
+          "name": "Дисциплины по выбору Б1.В.ДВ.05"
+        }
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          6
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 16,
+        "practical_classes": 16,
+        "self_study": 58,
+        "total": 106
+      },
+      "load_by_semester": {
+        "6": {
+          "lectures": 16,
+          "laboratory_works": 16,
+          "practical_classes": 16,
+          "self_study": 58
+        }
+      }
+    },
+    "Б1.В.ДВ.06.01": {
+      "code": "Б1.В.ДВ.06.01",
+      "name": "Общая физическая подготовка",
+      "department_code": 11,
+      "department_name": "Физическая культура и спорт",
+      "credit_units": 0,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": {
+          "code": "Б1.В.ДВ.06",
+          "name": "Физическая культура и спорт, элективная дисциплина (модуль)"
+        }
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 0,
+        "laboratory_works": 0,
+        "practical_classes": 160,
+        "self_study": 168,
+        "total": 328
+      },
+      "load_by_semester": {
+        "1": {
+          "lectures": 0,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 34
+        },
+        "2": {
+          "lectures": 0,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 34
+        },
+        "3": {
+          "lectures": 0,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 34
+        },
+        "4": {
+          "lectures": 0,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 34
+        },
+        "5": {
+          "lectures": 0,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 32
+        }
+      }
+    },
+    "Б1.В.ДВ.06.02": {
+      "code": "Б1.В.ДВ.06.02",
+      "name": "Оздоровительная физическая культура",
+      "department_code": 11,
+      "department_name": "Физическая культура и спорт",
+      "credit_units": 0,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": {
+          "code": "Б1.В.ДВ.06",
+          "name": "Физическая культура и спорт, элективная дисциплина (модуль)"
+        }
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 0,
+        "laboratory_works": 0,
+        "practical_classes": 160,
+        "self_study": 168,
+        "total": 328
+      },
+      "load_by_semester": {
+        "1": {
+          "lectures": 0,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 34
+        },
+        "2": {
+          "lectures": 0,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 34
+        },
+        "3": {
+          "lectures": 0,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 34
+        },
+        "4": {
+          "lectures": 0,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 34
+        },
+        "5": {
+          "lectures": 0,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 32
+        }
+      }
+    },
+    "Б1.В.ДВ.06.03": {
+      "code": "Б1.В.ДВ.06.03",
+      "name": "Спортивная подготовка",
+      "department_code": 11,
+      "department_name": "Физическая культура и спорт",
+      "credit_units": 0,
+      "structure": {
+        "block": "Блок 1.Дисциплины (модули)",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": {
+          "code": "Б1.В.ДВ.06",
+          "name": "Физическая культура и спорт, элективная дисциплина (модуль)"
+        }
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 0,
+        "laboratory_works": 0,
+        "practical_classes": 160,
+        "self_study": 168,
+        "total": 328
+      },
+      "load_by_semester": {
+        "1": {
+          "lectures": 0,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 34
+        },
+        "2": {
+          "lectures": 0,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 34
+        },
+        "3": {
+          "lectures": 0,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 34
+        },
+        "4": {
+          "lectures": 0,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 34
+        },
+        "5": {
+          "lectures": 0,
+          "laboratory_works": 0,
+          "practical_classes": 32,
+          "self_study": 32
+        }
+      }
+    },
+    "Б2.О.01(У)": {
+      "code": "Б2.О.01(У)",
+      "name": "Учебная практика. Ознакомительная практика",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 2.Практика",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [],
+        "graded_credits": [
+          2
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 2,
+        "laboratory_works": 0,
+        "practical_classes": 0,
+        "self_study": 106,
+        "total": 108
+      },
+      "load_by_semester": {
+        "2": {
+          "lectures": 2,
+          "laboratory_works": 0,
+          "practical_classes": 0,
+          "self_study": 106
+        }
+      }
+    },
+    "Б2.О.02(У)": {
+      "code": "Б2.О.02(У)",
+      "name": "Учебная практика. Научно-исследовательская работа (получение первичных навыков научно-исследовательской работы)",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 2.Практика",
+        "part": "Обязательная часть",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [],
+        "graded_credits": [
+          4
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 2,
+        "laboratory_works": 0,
+        "practical_classes": 0,
+        "self_study": 106,
+        "total": 108
+      },
+      "load_by_semester": {
+        "4": {
+          "lectures": 2,
+          "laboratory_works": 0,
+          "practical_classes": 0,
+          "self_study": 106
+        }
+      }
+    },
+    "Б2.В.01(Н)": {
+      "code": "Б2.В.01(Н)",
+      "name": "Производственная практика. Научно-исследовательская работа",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 6,
+      "structure": {
+        "block": "Блок 2.Практика",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [],
+        "graded_credits": [
+          6
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 2,
+        "laboratory_works": 0,
+        "practical_classes": 0,
+        "self_study": 214,
+        "total": 216
+      },
+      "load_by_semester": {
+        "6": {
+          "lectures": 2,
+          "laboratory_works": 0,
+          "practical_classes": 0,
+          "self_study": 214
+        }
+      }
+    },
+    "Б2.В.02(Пд)": {
+      "code": "Б2.В.02(Пд)",
+      "name": "Производственная практика. Преддипломная практика",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "Блок 2.Практика",
+        "part": "Часть, формируемая участниками образовательных отношений",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [],
+        "graded_credits": [
+          8
+        ],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 2,
+        "laboratory_works": 0,
+        "practical_classes": 0,
+        "self_study": 106,
+        "total": 108
+      },
+      "load_by_semester": {
+        "8": {
+          "lectures": 2,
+          "laboratory_works": 0,
+          "practical_classes": 0,
+          "self_study": 106
+        }
+      }
+    },
+    "Б3.01(Д)": {
+      "code": "Б3.01(Д)",
+      "name": "Выполнение и защита выпускной квалификационной работы",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 9,
+      "structure": {
+        "block": "Блок 3.Государственная итоговая аттестация",
+        "part": "",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 0,
+        "laboratory_works": 0,
+        "practical_classes": 15,
+        "self_study": 309,
+        "total": 324
+      },
+      "load_by_semester": {
+        "8": {
+          "lectures": 0,
+          "laboratory_works": 0,
+          "practical_classes": 15,
+          "self_study": 309
+        }
+      }
+    },
+    "ФТД.01": {
+      "code": "ФТД.01",
+      "name": "Деловой документооборот",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "ФТД.Факультативы",
+        "part": "",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          6
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 8,
+        "laboratory_works": 0,
+        "practical_classes": 8,
+        "self_study": 90,
+        "total": 106
+      },
+      "load_by_semester": {
+        "6": {
+          "lectures": 8,
+          "laboratory_works": 0,
+          "practical_classes": 8,
+          "self_study": 90
+        }
+      }
+    },
+    "ФТД.02": {
+      "code": "ФТД.02",
+      "name": "Менеджмент в профессиональной деятельности",
+      "department_code": 10,
+      "department_name": "Прикладная математика и информационные технологии",
+      "credit_units": 3,
+      "structure": {
+        "block": "ФТД.Факультативы",
+        "part": "",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          7
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 8,
+        "laboratory_works": 0,
+        "practical_classes": 8,
+        "self_study": 90,
+        "total": 106
+      },
+      "load_by_semester": {
+        "7": {
+          "lectures": 8,
+          "laboratory_works": 0,
+          "practical_classes": 8,
+          "self_study": 90
+        }
+      }
+    },
+    "ФТД.03": {
+      "code": "ФТД.03",
+      "name": "Технологическое предпринимательство",
+      "department_code": 67,
+      "department_name": "Экономика предприятия",
+      "credit_units": 2,
+      "structure": {
+        "block": "ФТД.Факультативы",
+        "part": "",
+        "elective_group": null
+      },
+      "control_forms": {
+        "exams": [],
+        "credits": [
+          3
+        ],
+        "graded_credits": [],
+        "course_projects": [],
+        "course_works": []
+      },
+      "total_hours": {
+        "lectures": 16,
+        "laboratory_works": 0,
+        "practical_classes": 16,
+        "self_study": 38,
+        "total": 70
+      },
+      "load_by_semester": {
+        "3": {
+          "lectures": 16,
+          "laboratory_works": 0,
+          "practical_classes": 16,
+          "self_study": 38
+        }
+      }
+    }
+  }
+}

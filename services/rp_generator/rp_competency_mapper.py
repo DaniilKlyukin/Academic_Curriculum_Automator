@@ -3,7 +3,7 @@ import re
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Set, Tuple
 
 from openpyxl import load_workbook
 
@@ -25,7 +25,7 @@ def _find_competency_text_column(sheet) -> int:
 class CompetencyMapper:
     """Парсер листа 'Компетенции' для сопоставления дисциплин и индикаторов.
 
-    Использует адаптивный многоколоночный алгоритм обхода структуры листа.
+    Разделяет данные на реестр описаний и реляционную карту связей.
     """
 
     def __init__(self, excel_path: Path):
@@ -41,12 +41,13 @@ class CompetencyMapper:
         logger.info(f"Определен столбец Содержания компетенций -> {txt_col}")
 
         # Помехоустойчивые паттерны к разным типам тире/дефисов и пробелов
-        comp_pattern = re.compile(r"^([A-Za-zА-Яа-я]+)\s*[-–—]\s*\d+$")
-        indicator_pattern = re.compile(r"^([A-Za-zА-Яа-я]+)\s*[-–—]\s*\d+\.\d+$")
+        comp_pattern = re.compile(r"^([A-Za-zА-Яа-я]+)\s*[-–—]\s*(\d+)$")
+        indicator_pattern = re.compile(r"^([A-Za-zА-Яа-я]+)\s*[-–—]\s*(\d+\.\d+)$")
         item_pattern = re.compile(r"^(Б\d|ФТД)")
 
-        # Итоговая карта связей дисциплин и компетенций
-        discipline_to_competencies = {}
+        # Внутренние структуры для сбора данных
+        competencies_registry: Dict[str, Dict[str, Any]] = {}
+        subject_to_competencies: Dict[str, Dict[str, Any]] = {}
 
         current_comp_code = ""
         current_comp_text = ""
@@ -80,10 +81,19 @@ class CompetencyMapper:
                 comp_code = val_col2
 
             if comp_code:
-                current_comp_code = comp_code
+                # Нормализация кода (замена дефисов на стандартный дефис)
+                current_comp_code = re.sub(r'[-–—]', '-', comp_code).replace(" ", "")
                 current_comp_text = text_val
                 current_ind_code = ""
                 current_ind_text = ""
+
+                if current_comp_code not in competencies_registry:
+                    competencies_registry[current_comp_code] = {
+                        "competency_code": current_comp_code,
+                        "competency_text": current_comp_text,
+                        "disciplines": set(),
+                        "indicators": {}
+                    }
                 continue
 
             # 2. Поиск ИНДИКАТОРА (может быть в колонке 2 или 3)
@@ -94,8 +104,25 @@ class CompetencyMapper:
                 indicator_code = val_col3
 
             if indicator_code:
-                current_ind_code = indicator_code
+                current_ind_code = re.sub(r'[-–—]', '-', indicator_code).replace(" ", "")
                 current_ind_text = text_val
+
+                if current_comp_code:
+                    if current_comp_code not in competencies_registry:
+                        competencies_registry[current_comp_code] = {
+                            "competency_code": current_comp_code,
+                            "competency_text": "",
+                            "disciplines": set(),
+                            "indicators": {}
+                        }
+
+                    indicators_dict = competencies_registry[current_comp_code]["indicators"]
+                    if current_ind_code not in indicators_dict:
+                        indicators_dict[current_ind_code] = {
+                            "indicator_code": current_ind_code,
+                            "indicator_text": current_ind_text,
+                            "disciplines": set()
+                        }
                 continue
 
             # 3. Поиск ДИСЦИПЛИНЫ/ПРАКТИКИ (может быть в колонке 3 или 4)
@@ -110,30 +137,62 @@ class CompetencyMapper:
                     continue
 
                 discipline_code = item_code
-                if discipline_code not in discipline_to_competencies:
-                    discipline_to_competencies[discipline_code] = {
+                discipline_name = text_val
+
+                # 3.1. Заполнение связей в блоке subject_to_competencies
+                if discipline_code not in subject_to_competencies:
+                    subject_to_competencies[discipline_code] = {
                         "discipline_code": discipline_code,
-                        "discipline_name": text_val,
+                        "discipline_name": discipline_name,
                         "competencies": {}
                     }
 
-                comp_dict = discipline_to_competencies[discipline_code]["competencies"]
-                if current_comp_code not in comp_dict:
-                    comp_dict[current_comp_code] = {
+                sub_comp_dict = subject_to_competencies[discipline_code]["competencies"]
+                if current_comp_code not in sub_comp_dict:
+                    sub_comp_dict[current_comp_code] = []
+
+                if current_ind_code not in sub_comp_dict[current_comp_code]:
+                    sub_comp_dict[current_comp_code].append(current_ind_code)
+
+                # 3.2. Заполнение обратных ссылок в реестре competencies_registry
+                if current_comp_code not in competencies_registry:
+                    competencies_registry[current_comp_code] = {
                         "competency_code": current_comp_code,
-                        "competency_text": current_comp_text,
-                        "indicators": []
+                        "competency_text": "",
+                        "disciplines": set(),
+                        "indicators": {}
                     }
+                competencies_registry[current_comp_code]["disciplines"].add(discipline_code)
 
-                # Добавляем индикатор в список, если он не был добавлен ранее
-                existing_indicators = [ind["indicator_code"] for ind in comp_dict[current_comp_code]["indicators"]]
-                if current_ind_code not in existing_indicators:
-                    comp_dict[current_comp_code]["indicators"].append({
+                indicators_dict = competencies_registry[current_comp_code]["indicators"]
+                if current_ind_code not in indicators_dict:
+                    indicators_dict[current_ind_code] = {
                         "indicator_code": current_ind_code,
-                        "indicator_text": current_ind_text
-                    })
+                        "indicator_text": "",
+                        "disciplines": set()
+                    }
+                indicators_dict[current_ind_code]["disciplines"].add(discipline_code)
 
-        return discipline_to_competencies
+        # Преобразование set во множествах в sorted list для валидного сохранения JSON
+        serialized_registry = {}
+        for comp_code, comp_data in competencies_registry.items():
+            serialized_registry[comp_code] = {
+                "competency_code": comp_data["competency_code"],
+                "competency_text": comp_data["competency_text"],
+                "disciplines": sorted(list(comp_data["disciplines"])),
+                "indicators": {}
+            }
+            for ind_code, ind_data in comp_data["indicators"].items():
+                serialized_registry[comp_code]["indicators"][ind_code] = {
+                    "indicator_code": ind_data["indicator_code"],
+                    "indicator_text": ind_data["indicator_text"],
+                    "disciplines": sorted(list(ind_data["disciplines"]))
+                }
+
+        return {
+            "competencies_registry": serialized_registry,
+            "subject_to_competencies": subject_to_competencies
+        }
 
 
 def main():
@@ -147,11 +206,21 @@ def main():
         print("Ошибка: Файл плана не найден.")
         return
 
+    # Запрос пути для сохранения результатов
+    user_output_dir = input(
+        "Введите путь к папке для сохранения результатов (по умолчанию 'services/rp_generator'): ").strip()
+    if not user_output_dir:
+        user_output_dir = "services/rp_generator"
+
     mapper = CompetencyMapper(excel_path)
     try:
         data = mapper.parse()
-        output_path = Path("services/rp_generator/rp_subject_competency_map.json")
-        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Создание директории и формирование финального пути
+        output_dir = Path(user_output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_path = output_dir / "rp_subject_competency_map.json"
+
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
         print(f"[Успешно] Карта компетенций предметов сохранена в:\n{output_path.absolute()}")

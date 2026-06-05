@@ -20,7 +20,31 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(
 
 # === СХЕМЫ ОТВЕТОВ ДЛЯ НАДЁЖНОЙ СЕРИАЛИЗАЦИИ ===
 if HAS_GEMINI:
-    # 1. Схема педагогического фрейма
+    # Определение связей индикатора с глобальными списками ЗУН
+    IndicatorMappingSchema = types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "indicator_code": types.Schema(type=types.Type.STRING, description="Код индикатора, например УК-1.1"),
+            "knowledge_indices": types.Schema(
+                type=types.Type.ARRAY,
+                items=types.Schema(type=types.Type.INTEGER),
+                description="Порядковые номера (индексы с 1) знаний из глобального списка knowledge_list, формируемых данным индикатором"
+            ),
+            "skills_indices": types.Schema(
+                type=types.Type.ARRAY,
+                items=types.Schema(type=types.Type.INTEGER),
+                description="Порядковые номера (индексы с 1) умений из глобального списка skills_list, формируемых данным индикатором"
+            ),
+            "abilities_indices": types.Schema(
+                type=types.Type.ARRAY,
+                items=types.Schema(type=types.Type.INTEGER),
+                description="Порядковые номера (индексы с 1) навыков из глобального списка abilities_list, формируемых данным индикатором"
+            )
+        },
+        required=["indicator_code", "knowledge_indices", "skills_indices", "abilities_indices"]
+    )
+
+    # 1. Схема педагогического фрейма (с глобальными списками ЗУН)
     PedagogicalFrameSchema = types.Schema(
         type=types.Type.OBJECT,
         properties={
@@ -38,35 +62,31 @@ if HAS_GEMINI:
                 type=types.Type.STRING,
                 description="Связь с последующими дисциплинами (для чего пригодятся знания этого предмета)"
             ),
-            "indicators_ksa": types.Schema(
+            "knowledge_list": types.Schema(
                 type=types.Type.ARRAY,
-                description="Сопоставление индикаторов компетенций со знаниями, умениями, навыками (З1, У1, Н1)",
-                items=types.Schema(
-                    type=types.Type.OBJECT,
-                    properties={
-                        "indicator_code": types.Schema(type=types.Type.STRING,
-                                                       description="Код индикатора, например УК-1.1"),
-                        "knowledge": types.Schema(
-                            type=types.Type.ARRAY,
-                            items=types.Schema(type=types.Type.STRING),
-                            description="Знания (З1, З2...) по этому индикатору в рамках предмета"
-                        ),
-                        "skills": types.Schema(
-                            type=types.Type.ARRAY,
-                            items=types.Schema(type=types.Type.STRING),
-                            description="Умения (У1, У2...) по этому индикатору"
-                        ),
-                        "abilities": types.Schema(
-                            type=types.Type.ARRAY,
-                            items=types.Schema(type=types.Type.STRING),
-                            description="Навыки/Владения (Н1, Н2...) по этому индикатору"
-                        )
-                    },
-                    required=["indicator_code", "knowledge", "skills", "abilities"]
-                )
+                items=types.Schema(type=types.Type.STRING),
+                description="Глобальный независимый перечень приобретаемых знаний по дисциплине (З1, З2...)"
+            ),
+            "skills_list": types.Schema(
+                type=types.Type.ARRAY,
+                items=types.Schema(type=types.Type.STRING),
+                description="Глобальный независимый перечень приобретаемых умений по дисциплине (У1, У2...)"
+            ),
+            "abilities_list": types.Schema(
+                type=types.Type.ARRAY,
+                items=types.Schema(type=types.Type.STRING),
+                description="Глобальный независимый перечень приобретаемых навыков/владений по дисциплине (Н1, Н2...)"
+            ),
+            "indicator_mappings": types.Schema(
+                type=types.Type.ARRAY,
+                description="Маппинг связи каждого индикатора со сформированными знаниями, умениями и навыками из глобальных списков",
+                items=IndicatorMappingSchema
             )
         },
-        required=["goals", "tasks", "prerequisites_text", "postrequisites_text", "indicators_ksa"]
+        required=[
+            "goals", "tasks", "prerequisites_text", "postrequisites_text",
+            "knowledge_list", "skills_list", "abilities_list", "indicator_mappings"
+        ]
     )
 
     # 2. Схема тематического планирования
@@ -131,23 +151,13 @@ if HAS_GEMINI:
         required=["sections", "lectures", "practicals", "labs"]
     )
 
-    # 3. Схема литературы и аттестации
-    ResourcesAndEvaluationSchema = types.Schema(
+    CompetencyTestSchema = types.Schema(
         type=types.Type.OBJECT,
         properties={
-            "primary_literature": types.Schema(type=types.Type.ARRAY, items=types.Schema(type=types.Type.STRING)),
-            "secondary_literature": types.Schema(type=types.Type.ARRAY, items=types.Schema(type=types.Type.STRING)),
-            "methodological_guidelines": types.Schema(type=types.Type.ARRAY,
-                                                      items=types.Schema(type=types.Type.STRING)),
-            "internet_resources": types.Schema(type=types.Type.ARRAY, items=types.Schema(type=types.Type.STRING)),
-            "control_questions": types.Schema(
+            "competency_code": types.Schema(type=types.Type.STRING, description="Код компетенции, например ОПК-4"),
+            "questions": types.Schema(
                 type=types.Type.ARRAY,
-                description="Контрольные вопросы для подготовки к зачету/экзамену (не менее 15 вопросов)",
-                items=types.Schema(type=types.Type.STRING)
-            ),
-            "test_questions": types.Schema(
-                type=types.Type.ARRAY,
-                description="Набор из 5 тестовых вопросов по дисциплине с 4 вариантами ответов и указанием номера верного ответа",
+                description="Набор из 5 тестовых вопросов по этой компетенции",
                 items=types.Schema(
                     type=types.Type.OBJECT,
                     properties={
@@ -162,16 +172,39 @@ if HAS_GEMINI:
                     },
                     required=["question", "options", "correct_answer"]
                 )
+            )
+        },
+        required=["competency_code", "questions"]
+    )
+
+    # 3. Схема литературы, аттестации и тестов компетенций
+    ResourcesAndEvaluationSchema = types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "primary_literature": types.Schema(type=types.Type.ARRAY, items=types.Schema(type=types.Type.STRING)),
+            "secondary_literature": types.Schema(type=types.Type.ARRAY, items=types.Schema(type=types.Type.STRING)),
+            "methodological_guidelines": types.Schema(type=types.Type.ARRAY,
+                                                      items=types.Schema(type=types.Type.STRING)),
+            "internet_resources": types.Schema(type=types.Type.ARRAY, items=types.Schema(type=types.Type.STRING)),
+            "control_questions": types.Schema(
+                type=types.Type.ARRAY,
+                description="Контрольные вопросы для подготовки к зачету/экзамену (не менее 15 вопросов)",
+                items=types.Schema(type=types.Type.STRING)
+            ),
+            "competency_tests": types.Schema(
+                type=types.Type.ARRAY,
+                description="Тесты для контроля уровня сформированности каждой компетенции (по 5 вопросов на каждую связанную компетенцию)",
+                items=CompetencyTestSchema
             ),
             "software": types.Schema(
                 type=types.Type.ARRAY,
-                description="Программное обеспечение, необходимое для освоения дисциплины (среды разработки, симуляторы, САПР, специализированные пакеты)",
+                description="Программное обеспечение, необходимое для освоения дисциплины",
                 items=types.Schema(type=types.Type.STRING)
             )
         },
         required=[
             "primary_literature", "secondary_literature", "methodological_guidelines",
-            "internet_resources", "control_questions", "test_questions", "software"
+            "internet_resources", "control_questions", "competency_tests", "software"
         ]
     )
 
@@ -315,7 +348,7 @@ class RPAIGenerator:
             # Анализ предшественников и последователей по семестрам плана
             priors, futures = self._get_semester_relationships(code, disciplines)
 
-            # === ЗАПРОС 1: Педагогический фрейм (Цели, задачи, связи, ЗУН/КУН) ===
+            # === ЗАПРОС 1: Педагогический фрейм (Цели, задачи, связи, глобальные ЗУНы и маппинг) ===
             self.rate_limiter.wait()
             prompt_frame = f"""Вы — ведущий профессор вуза. Сгенерируйте педагогический фрейм (цель, задачи, связи и ЗУНы) для дисциплины «{subj_name}».
 Направление подготовки: {metadata.get('direction_code')} {metadata.get('direction_name')}
@@ -331,7 +364,8 @@ class RPAIGenerator:
 Требования:
 1. Задачи сформулируйте списком (не менее 3).
 2. Сделайте ссылки на предшествующие и последующие предметы строго из предложенных списков.
-3. Распишите Знания, Умения, Владения для КАЖДОГО связанного индикатора (например, для {list(mapped_comp.keys())[0] if mapped_comp else 'УК-1.1'}).
+3. Сформируйте глобальные независимые списки приобретаемых знаний (knowledge_list), умений (skills_list) и навыков (abilities_list) по дисциплине (без привязки к конкретным индикаторам в плане количества).
+4. Свяжите индикаторы с элементами этих глобальных списков через indicator_mappings, указывая порядковые номера элементов начиная с 1 (например, knowledge_indices: [1, 2]).
 """
             try:
                 logger.info("  -> Вызов Запроса 1 (Педагогический фрейм)...")
@@ -376,21 +410,23 @@ class RPAIGenerator:
                 logger.error(f"Не удалось выполнить Запрос 2 для {code}: {e}")
                 continue
 
-            # === ЗАПРОС 3: Литература и аттестация (Ресурсы, IPRbookshop) ===
+            # === ЗАПРОС 3: Литература, аттестация и тесты по компетенциям ===
             self.rate_limiter.wait()
             current_year = metadata.get("start_year") or "2026"
-            prompt_resources = f"""Сгенерируйте список литературы и контрольные вопросы для дисциплины «{subj_name}».
+            comp_codes_str = ", ".join(mapped_comp.keys()) if mapped_comp else "общепрофессиональным навыкам"
+            prompt_resources = f"""Сгенерируйте список литературы, контрольные вопросы и тесты по компетенциям для дисциплины «{subj_name}».
 Направление подготовки: {metadata.get('direction_code')} {metadata.get('direction_name')}
 Текущий год разработки программы: {current_year}
 
 Требования:
-1. Основная литература: 2-3 учебника или учебных пособия, обязательно содержащие ссылки на электронно-библиотечную систему IPRbookshop (iprbookshop.ru / IPR SMART) с указанием года издания строго в диапазоне от 2020 до {current_year}. Книги должны быть тематически связаны с предметом.
+1. Основная литература: 2-3 учебника или учебных пособия со ссылками на IPRbookshop (iprbookshop.ru / IPR SMART) с годом издания от 2020 до {current_year}.
 2. Дополнительная литература: 2-3 книги.
-3. Методические указания: ссылки на методические рекомендации для практических/лабораторных работ по теме дисциплины.
-4. Контрольные вопросы: 15-20 вопросов для подготовки студентов к промежуточной аттестации.
+3. Методические указания: ссылки на методические рекомендации по теме дисциплины.
+4. Контрольные вопросы: 15-20 вопросов для подготовки к зачету/экзамену.
+5. Тесты по компетенциям: для каждой компетенции ({comp_codes_str}) сформируйте отдельный тест из 5 профессиональных вопросов с 4 вариантами ответов и указанием верного ответа.
 """
             try:
-                logger.info("  -> Вызов Запроса 3 (Ресурсы и аттестация)...")
+                logger.info("  -> Вызов Запроса 3 (Ресурсы, аттестация и тесты)...")
                 res_res = client.models.generate_content(
                     model=self.model_name,
                     contents=prompt_resources,

@@ -37,9 +37,10 @@ def set_font(run, font_name="Times New Roman", size_pt=14, bold=False, italic=Fa
         logger.debug(f"Не удалось применить стили шрифтов: {e}")
 
 
-def add_paragraph_with_spacing(doc, text="", style="Normal", bold=False, italic=False, align=None,
+def add_paragraph_with_spacing(doc, text="", style="Normal", bold=False, italic=False,
+                               align=WD_ALIGN_PARAGRAPH.JUSTIFY, # Изменено с None на JUSTIFY
                                space_after=6, space_before=0, line_spacing=1.0) -> Any:
-    """Добавляет абзац с фиксированными отступами и одинарным интервалом."""
+    """Добавляет абзац с фиксированными отступами и выравниванием по ширине по умолчанию."""
     p = doc.add_paragraph()
     try:
         p.style = style
@@ -90,9 +91,10 @@ def set_cell_margins(cell, top=100, bottom=100, left=150, right=150):
     tcPr.append(tcMar)
 
 
-def set_cell_text(cell, text: str, bold=False, italic=False, size_pt=12, align=WD_ALIGN_PARAGRAPH.LEFT,
+def set_cell_text(cell, text: str, bold=False, italic=False, size_pt=12,
+                  align=WD_ALIGN_PARAGRAPH.JUSTIFY, # Изменено с LEFT на JUSTIFY
                   vertical_align=WD_ALIGN_VERTICAL.CENTER, fill_hex=None):
-    """Форматирует ячейку таблицы и записывает в нее текст."""
+    """Форматирует ячейку таблицы и записывает в нее текст с выравниванием по ширине по умолчанию."""
     cell.text = ""
     cell.vertical_alignment = vertical_align
     set_cell_margins(cell, top=100, bottom=100, left=120, right=120)

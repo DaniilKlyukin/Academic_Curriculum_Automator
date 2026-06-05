@@ -301,17 +301,27 @@ def extract_default_personnel_from_excel(sheet) -> Dict[str, str]:
                     if col + offset <= sheet.max_column:
                         test_cell = str(sheet.cell(row=row, column=col + offset).value or "").strip()
                         if test_cell:
+                            # Проверяем наличие И.о. в ячейке с должностью
+                            is_acting = any(x in cell_val.lower() for x in ["и.о.", "и. о.", "врио", "исполняющий"])
+                            hod_role = "И.о. заведующего кафедрой" if is_acting else "заведующий кафедрой"
+
                             m = fio_excel_pattern.search(test_cell)
                             if m:
                                 potential_name = clean_fio_spaces(m.group(1))
                                 if not is_placeholder_name(potential_name):
-                                    default_staff[target_key] = potential_name
+                                    if target_key == "head_of_department":
+                                        default_staff[target_key] = (potential_name, hod_role)
+                                    else:
+                                        default_staff[target_key] = potential_name
                                     break
                             m_fb = fio_fallback_pattern.search(test_cell)
                             if m_fb:
                                 potential_name = clean_fio_spaces(m_fb.group(1))
                                 if not is_placeholder_name(potential_name):
-                                    default_staff[target_key] = potential_name
+                                    if target_key == "head_of_department":
+                                        default_staff[target_key] = (potential_name, hod_role)
+                                    else:
+                                        default_staff[target_key] = potential_name
                                     break
     return default_staff
 
@@ -402,7 +412,7 @@ def parse_rp_file(file_path: Path) -> Optional[dict]:
                 break
 
     dean = find_person_by_role(lines, ROLE_DEAN, INITIALS_PATTERN, scan_offset=4)
-    head_of_department = find_person_by_role(lines, ROLE_HEAD, INITIALS_PATTERN, scan_offset=4)
+    head_of_department_name, head_of_department_role = find_hod_and_role(lines, scan_offset=4)
     program_director = find_person_by_role(lines, ROLE_DIRECTOR, INITIALS_PATTERN, scan_offset=4)
 
     raw_compilers: List[str] = []
@@ -457,11 +467,41 @@ def parse_rp_file(file_path: Path) -> Optional[dict]:
         "data": {
             "dean": dean,
             "compilers": compilers,
-            "head_of_department": head_of_department,
+            "head_of_department": (head_of_department_name, head_of_department_role),
             "program_director": program_director,
             "profile": profile
         }
     }
+
+
+def find_hod_and_role(lines: List[str], scan_offset: int = 4) -> Tuple[str, str]:
+    """Ищет заведующего кафедрой и определяет его точную должность (штатный или И.о.)."""
+    role_head_exact = re.compile(
+        r"((?:(?:и\.?\s*о\.?|врио|временно\s+исполняющий\s+обязанности)\s+)?(?:заведующий|зав\.?)\s*(?:кафедрой|каф\.?))\b",
+        re.IGNORECASE
+    )
+    for idx, line in enumerate(lines):
+        line_clean = clean_text(line)
+        match_role = role_head_exact.search(line_clean)
+        if match_role:
+            raw_role = match_role.group(1).strip()
+
+            # Определяем точную должность
+            normalized_role = "заведующий кафедрой"
+            if any(x in raw_role.lower() for x in ["и.о.", "и. о.", "врио", "исполняющий"]):
+                normalized_role = "И.о. заведующего кафедрой"
+
+            # Ищем ФИО на ближайших строках
+            for offset in range(0, scan_offset):
+                if idx + offset < len(lines):
+                    pot_line = clean_text(lines[idx + offset])
+                    m = INITIALS_PATTERN.search(pot_line)
+                    if m:
+                        potential_name = clean_fio_spaces(m.group(0))
+                        if not is_placeholder_name(potential_name):
+                            return potential_name, normalized_role
+
+    return "", "заведующий кафедрой"
 
 
 class PersonnelExtractor:
@@ -510,9 +550,16 @@ class PersonnelExtractor:
                     extracted_data = result["data"]
 
                     # Наложение значений по умолчанию, если поля пустые
-                    for key in ["dean", "head_of_department", "program_director"]:
+                    for key in ["dean", "program_director"]:
                         if not extracted_data.get(key) and default_staff.get(key):
                             extracted_data[key] = default_staff[key]
+
+                        # Отдельная обработка для head_of_department
+                    hod_data = extracted_data.get("head_of_department")
+                    if not hod_data or not hod_data[0]:
+                        extracted_data["head_of_department"] = default_staff.get(
+                            "head_of_department", ("", "заведующий кафедрой")
+                        )
 
                     raw_subjects[dir_key][disc_key] = extracted_data
                     logger.info(f"  [+] Собран профиль для: {disc_key} ({dir_key})")
@@ -546,6 +593,44 @@ class PersonnelExtractor:
             entity_id = f"{prefix}{idx}"
             canonical_name = max(cl["names_freq"], key=cl["names_freq"].get)
             entities[entity_id] = {"name": canonical_name}
+
+            for var_name in cl["names_freq"]:
+                lookup[var_name.lower()] = entity_id
+
+        return entities, lookup
+
+    def _cluster_heads(self, raw_heads: List[Tuple[str, str]]) -> Tuple[Dict[str, Any], Dict[str, str]]:
+        """Группирует заведующих кафедрой с учетом их конкретных должностей."""
+        clusters = []
+        for name, role in raw_heads:
+            c_name = clean_fio_spaces(name)
+            if not c_name or is_placeholder_name(c_name):
+                continue
+            matched_cluster = None
+            for cl in clusters:
+                canonical_name = max(cl["names_freq"], key=cl["names_freq"].get)
+                if is_similar_name(c_name, canonical_name):
+                    matched_cluster = cl
+                    break
+            if matched_cluster is None:
+                matched_cluster = {"names_freq": {}, "roles_freq": {}}
+                clusters.append(matched_cluster)
+
+            matched_cluster["names_freq"][c_name] = matched_cluster["names_freq"].get(c_name, 0) + 1
+            matched_cluster["roles_freq"][role] = matched_cluster["roles_freq"].get(role, 0) + 1
+
+        entities = {}
+        lookup = {}
+        for idx, cl in enumerate(clusters, start=1):
+            entity_id = f"hod_{idx}"
+            canonical_name = max(cl["names_freq"], key=cl["names_freq"].get)
+            canonical_role = max(cl["roles_freq"], key=cl["roles_freq"].get) if cl[
+                "roles_freq"] else "заведующий кафедрой"
+
+            entities[entity_id] = {
+                "name": canonical_name,
+                "role": canonical_role
+            }
 
             for var_name in cl["names_freq"]:
                 lookup[var_name.lower()] = entity_id
@@ -661,7 +746,6 @@ class PersonnelExtractor:
 
         # Сбор сырых значений для каждого типа сущностей
         raw_deans = []
-        raw_heads = []
         raw_pds = []
         raw_umk = []
         raw_oamr = []
@@ -670,8 +754,6 @@ class PersonnelExtractor:
         # Сбор из дефолтных настроек Excel
         if default_staff.get("dean"):
             raw_deans.append(default_staff["dean"])
-        if default_staff.get("head_of_department"):
-            raw_heads.append(default_staff["head_of_department"])
         if default_staff.get("program_director"):
             raw_pds.append(default_staff["program_director"])
         if default_staff.get("umk_chairman"):
@@ -684,48 +766,56 @@ class PersonnelExtractor:
             for disc_key, data in subjects.items():
                 if data.get("dean"):
                     raw_deans.append(data["dean"])
-                if data.get("head_of_department"):
-                    raw_heads.append(data["head_of_department"])
                 if data.get("program_director"):
                     raw_pds.append(data["program_director"])
                 if data.get("profile"):
                     raw_profiles.append(data["profile"])
 
+        raw_heads = []
+        if default_staff.get("head_of_department") and default_staff["head_of_department"][0]:
+            raw_heads.append(default_staff["head_of_department"])
+
+        for dir_key, subjects in raw_subjects.items():
+            for disc_key, data in subjects.items():
+                hod_info = data.get("head_of_department")
+                if hod_info and hod_info[0]:
+                    raw_heads.append(hod_info)
+
         # Вызов кластеризации для всех справочников
+        heads_dict, heads_lookup = self._cluster_heads(raw_heads)
         deans_dict, deans_lookup = self._cluster_names(raw_deans, "dean_")
-        heads_dict, heads_lookup = self._cluster_names(raw_heads, "hod_")
         pds_dict, pds_lookup = self._cluster_names(raw_pds, "pd_")
         umk_dict, umk_lookup = self._cluster_names(raw_umk, "umk_")
         oamr_dict, oamr_lookup = self._cluster_names(raw_oamr, "oamr_")
         profiles_dict, profiles_lookup = self._cluster_profiles(raw_profiles)
         teachers_dict, teachers_lookup = self._normalize_teachers(raw_subjects)
 
-        # Нормализация значений по умолчанию
+        # Извлечение ID для default_staff
+        hod_tuple = default_staff.get("head_of_department", ("", "заведующий кафедрой"))
         mapped_default_staff = {
             "dean": self._lookup_id(default_staff.get("dean"), deans_lookup),
-            "head_of_department": self._lookup_id(default_staff.get("head_of_department"), heads_lookup),
+            "head_of_department": self._lookup_id(hod_tuple[0], heads_lookup),
             "program_director": self._lookup_id(default_staff.get("program_director"), pds_lookup),
             "umk_chairman": self._lookup_id(default_staff.get("umk_chairman"), umk_lookup),
             "oamr_head": self._lookup_id(default_staff.get("oamr_head"), oamr_lookup)
         }
 
-        # Связывание в subjects_mapping по идентификаторам
+        # Извлечение ID для subjects_mapping
         subjects_mapping = {}
         for dir_key, subjects in raw_subjects.items():
             subjects_mapping[dir_key] = {}
             for disc_key, data in subjects.items():
-
-                # Маппинг преподавателей
                 mapped_teacher_ids = []
                 for comp_str in data.get("compilers", []):
                     tid = teachers_lookup.get(comp_str.lower())
                     if tid and tid not in mapped_teacher_ids:
                         mapped_teacher_ids.append(tid)
 
+                hod_tuple = data.get("head_of_department", ("", "заведующий кафедрой"))
                 subjects_mapping[dir_key][disc_key] = {
                     "profile": self._lookup_id(data.get("profile"), profiles_lookup),
                     "dean": self._lookup_id(data.get("dean"), deans_lookup),
-                    "head_of_department": self._lookup_id(data.get("head_of_department"), heads_lookup),
+                    "head_of_department": self._lookup_id(hod_tuple[0], heads_lookup),
                     "program_director": self._lookup_id(data.get("program_director"), pds_lookup),
                     "teachers": mapped_teacher_ids
                 }

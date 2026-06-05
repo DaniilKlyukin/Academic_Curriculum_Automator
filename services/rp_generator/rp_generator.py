@@ -133,11 +133,13 @@ class RPGenerator:
         def get_name(id_val, source_dict):
             return source_dict.get(id_val, {}).get("name", "") if id_val else ""
 
-        # Сбор должностных лиц с учетом переопределений из subjects_mapping
+        hod_id = subj_staff.get("head_of_department") or default_staff.get("head_of_department")
+        hod_info = heads.get(hod_id, {}) if hod_id else {}
+
         resolved = {
             "dean": get_name(subj_staff.get("dean") or default_staff.get("dean"), deans),
-            "head_of_department": get_name(
-                subj_staff.get("head_of_department") or default_staff.get("head_of_department"), heads),
+            "head_of_department": hod_info.get("name", ""),
+            "head_of_department_role": hod_info.get("role", "заведующий кафедрой"),
             "program_director": get_name(subj_staff.get("program_director") or default_staff.get("program_director"),
                                          pds),
             "umk_chairman": get_name(default_staff.get("umk_chairman"), umks),
@@ -305,6 +307,11 @@ class RPGenerator:
                 lab_h = sem_load.get("laboratory_works", 0)
                 srs_h = sem_load.get("self_study", 0)
 
+                # Накапливаем итоговые аудиторные часы по семестрам
+                grand_total_lec += lec_h
+                grand_total_prac += prac_h
+                grand_total_lab += lab_h
+
                 for idx_s, s in enumerate(sem_sections):
                     s_row = table_struct.add_row().cells
                     set_row_cant_split(table_struct.rows[-1])
@@ -335,12 +342,6 @@ class RPGenerator:
                     set_cell_text(s_row[8], str(s_srs) if s_srs else "–", align=WD_ALIGN_PARAGRAPH.CENTER, size_pt=10)
                     set_cell_text(s_row[9], s_srs_desc, size_pt=9)
 
-                    grand_total_hours += s_total
-                    grand_total_lec += s_lec
-                    grand_total_prac += s_prac
-                    grand_total_lab += s_lab
-                    grand_total_srs += s_srs
-
                 control_info = sem_load.get("intermediate_control")
                 ctrl_hours = 0
                 if control_info:
@@ -367,13 +368,17 @@ class RPGenerator:
                                   f"{ctrl_type_ru} выставляется по совокупности результатов текущего контроля успеваемости",
                                   size_pt=9)
 
-                    grand_total_hours += ctrl_hours
                     grand_total_kcha += kcha_val
-                    grand_total_srs += srs_val
+
+                # Суммируем часы напрямую по семестровым итогам (это на 100% исключает расхождения)
+                sem_total_sum = lec_h + prac_h + lab_h + srs_h + ctrl_hours
+                grand_total_hours += sem_total_sum
+
+                sem_srs_sum = srs_h + (control_info['self_study'] if control_info else 0)
+                grand_total_srs += sem_srs_sum
 
                 sem_total_row = table_struct.add_row().cells
                 set_row_cant_split(table_struct.rows[-1])
-                sem_total_sum = lec_h + prac_h + lab_h + srs_h + ctrl_hours
 
                 set_cell_text(sem_total_row[1], f"Итого за {sem} семестр:", bold=True, size_pt=10)
                 set_cell_text(sem_total_row[2], str(sem_total_sum), bold=True, align=WD_ALIGN_PARAGRAPH.CENTER,
@@ -632,7 +637,7 @@ class RPGenerator:
             add_paragraph_with_spacing(doc, "Лист согласования рабочей программы дисциплины на учебный год", bold=True,
                                        align=WD_ALIGN_PARAGRAPH.CENTER, space_after=12)
             add_paragraph_with_spacing(doc, f"Рабочая программа дисциплины «{subj_name}» по направлению подготовки "
-                                            f"{metadata.get('direction_code')} {metadata.get('direction_name')} "
+                                            f"«{metadata.get('direction_code')} {metadata.get('direction_name')}» "
                                             f"согласована на ведение учебного процесса:")
 
             table_agree = doc.add_table(rows=len(years_list) + 1, cols=2)
@@ -641,7 +646,7 @@ class RPGenerator:
             set_cell_text(table_agree.rows[0].cells[0], "Учебный год", bold=True, size_pt=11,
                           align=WD_ALIGN_PARAGRAPH.CENTER, fill_hex="F2F2F2")
             set_cell_text(table_agree.rows[0].cells[1],
-                          "«Согласовано»: И.о. зав. кафедрой, ответственной за РПД (подпись и дата)", bold=True,
+                          "Согласовано\n(подпись и дата)", bold=True,
                           size_pt=11, align=WD_ALIGN_PARAGRAPH.CENTER, fill_hex="F2F2F2")
 
             for i_y, y_str in enumerate(years_list, start=1):
@@ -657,7 +662,7 @@ class RPGenerator:
             specialty_code = metadata.get("direction_code", "").strip()
 
             authors_abbr_list = [format_author_initials(c) for c in staff["compilers"] if format_author_initials(c)]
-            authors_abbr = "".join(authors_abbr_list)
+            authors_abbr = " ".join(authors_abbr_list)
 
             # Шаблон названия файла: {Код дисциплины} РП {АббревиатураПредмета} {КодСпециальности} {ИнициалыСоставителей}
             new_base_name = f"{code} РП {abbr_discipline} {specialty_code} {authors_abbr}".strip()

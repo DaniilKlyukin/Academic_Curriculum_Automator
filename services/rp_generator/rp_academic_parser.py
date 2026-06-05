@@ -321,7 +321,52 @@ class AcademicPlanParser:
         col_kp = 7
         col_kr = 8
 
-        col_credits = 9  # Колонка Зачетных Единиц (з.е.) - Экспертное значение
+        # === ДИНАМИЧЕСКИЙ ПОИСК КОЛОНОК (Автоопределение сдвигов и скрытых столбцов) ===
+        col_plan_hours = None
+        col_total_srs = None
+        col_total_control = None
+        col_credits = None
+
+        for col in range(1, sheet.max_column + 1):
+            for r in range(1, 6):
+                val_raw = sheet.cell(row=r, column=col).value
+                val = clean_text(val_raw).lower() if val_raw else ""
+                if not val:
+                    continue
+
+                # 1. Поиск ЗЕТ ("Экспертное" в группе "з.е.")
+                if "эксперт" in val:
+                    parent_val_1 = clean_text(sheet.cell(row=1, column=col).value).lower()
+                    parent_val_2 = clean_text(sheet.cell(row=2, column=col).value).lower()
+                    if any(x in parent_val_1 or x in parent_val_2 for x in ["з.е.", "зачетн"]):
+                        col_credits = col
+
+                # 2. Поиск "По плану"
+                elif "по плану" in val:
+                    col_plan_hours = col
+
+                # 3. Поиск общей СРС "СР" (в группе акад. часов)
+                elif val == "ср" or "самостоятельная" in val:
+                    parent_val_1 = clean_text(sheet.cell(row=1, column=col).value).lower()
+                    parent_val_2 = clean_text(sheet.cell(row=2, column=col).value).lower()
+                    if any(x in parent_val_1 or x in parent_val_2 for x in ["итого", "акад"]):
+                        col_total_srs = col
+
+                # 4. Поиск "Контроль" или "Конт роль" (в группе акад. часов)
+                elif any(x in val for x in ["контроль", "конт роль", "конт.роль"]):
+                    parent_val_1 = clean_text(sheet.cell(row=1, column=col).value).lower()
+                    parent_val_2 = clean_text(sheet.cell(row=2, column=col).value).lower()
+                    if any(x in parent_val_1 or x in parent_val_2 for x in ["итого", "акад"]):
+                        col_total_control = col
+
+        # Резервные дефолты (на случай несовпадения формата)
+        if col_credits is None: col_credits = 10
+        if col_plan_hours is None: col_plan_hours = 13
+        if col_total_srs is None: col_total_srs = 16
+        if col_total_control is None: col_total_control = 17
+
+        logger.info(
+            f"Определены индексы колонок: з.е.={col_credits}, По плану={col_plan_hours}, СР={col_total_srs}, Контроль={col_total_control}")
 
         col_dept = self._find_department_column(sheet)
         logger.info(f"Определен столбец кода закрепленной кафедры -> {col_dept}")
@@ -427,11 +472,20 @@ class AcademicPlanParser:
                 total_labs = 0
                 total_practicals = 0
                 total_cp = 0
+                total_control_hours = 0
+                total_control_self_study = 0.0
 
                 # Списки семестров контроля
                 exam_sems = parse_semesters_string(exam_sems)
                 credit_sems = parse_semesters_string(credit_sems)
                 graded_credit_sems = parse_semesters_string(graded_credit_sems)
+                kp_sems = parse_semesters_string(kp_sems)
+                kr_sems = parse_semesters_string(kr_sems)
+
+                # Функция для округления до 1 знака после запятой без сохранения .0
+                def format_academic_hours(value: float) -> float | int:
+                    rounded = round(value, 1)
+                    return int(rounded) if rounded.is_integer() else rounded
 
                 for sem_num, cols in semester_cols.items():
                     lek = sheet.cell(row=row, column=cols["Lek"]).value
@@ -443,11 +497,11 @@ class AcademicPlanParser:
                         lek_h = int(float(lek)) if lek else 0
                         lab_h = int(float(lab)) if lab else 0
                         pr_h = int(float(pr)) if pr else 0
-                        cp_h = int(float(cp)) if cp else 0
+                        cp_h = float(cp) if cp else 0.0  # Считываем СРС как float (сохраняем .25)
                     except (ValueError, TypeError):
                         continue
 
-                    # Проверяем, есть ли формы контроля в данном семестре
+                    # Определение базовой формы промежуточного контроля
                     control_info = None
                     if sem_num in exam_sems:
                         control_info = {
@@ -471,19 +525,64 @@ class AcademicPlanParser:
                             "total": 2.0
                         }
 
+                    # Учет дополнительных часов промежуточного контроля для Курсовых проектов (КП) и Курсовых работ (КР)
+                    cw_kp_kcha = 0.0
+                    if sem_num in kp_sems:
+                        cw_kp_kcha += 0.75
+                    if sem_num in kr_sems:
+                        cw_kp_kcha += 0.75
+
+                    if cw_kp_kcha > 0:
+                        if control_info is None:
+                            control_info = {
+                                "type": "CourseWorkProject",
+                                "kcha": cw_kp_kcha,
+                                "self_study": 0.0,
+                                "total": cw_kp_kcha
+                            }
+                        else:
+                            control_info["kcha"] = round(control_info["kcha"] + cw_kp_kcha, 2)
+                            control_info["total"] = round(control_info["total"] + cw_kp_kcha, 2)
+
                     # Семестр активен, если есть аудиторная нагрузка, СРС или форма контроля
                     if lek_h > 0 or lab_h > 0 or pr_h > 0 or cp_h > 0 or control_info is not None:
                         load_by_semester[str(sem_num)] = {
                             "lectures": lek_h,
                             "laboratory_works": lab_h,
                             "practical_classes": pr_h,
-                            "self_study": cp_h,
+                            "self_study": format_academic_hours(cp_h),
                             "intermediate_control": control_info
                         }
                         total_lectures += lek_h
                         total_labs += lab_h
                         total_practicals += pr_h
                         total_cp += cp_h
+
+                        if control_info:
+                            total_control_hours += control_info["total"]
+                            total_control_self_study += control_info["self_study"]
+
+                # Прямое считывание эталонных сумм из таблицы Excel во избежание накопительных погрешностей
+                plan_hours_cell = sheet.cell(row=row, column=col_plan_hours).value
+                total_srs_cell = sheet.cell(row=row, column=col_total_srs).value
+
+                try:
+                    direct_plan_hours = int(float(plan_hours_cell)) if plan_hours_cell is not None else 0
+                except (ValueError, TypeError):
+                    direct_plan_hours = 0
+
+                try:
+                    direct_total_srs = float(total_srs_cell) if total_srs_cell is not None else 0.0
+                except (ValueError, TypeError):
+                    direct_total_srs = 0.0
+
+                # Приоритет отдаем эталонным значениям из строк плана Excel
+                final_self_study = (direct_total_srs if direct_total_srs > 0 else total_cp) + total_control_self_study
+                final_total = direct_plan_hours if direct_plan_hours > 0 else (
+                            total_lectures + total_labs + total_practicals + total_cp + total_control_hours)
+
+                final_self_study = format_academic_hours(final_self_study)
+                final_total = format_academic_hours(final_total)
 
                 disciplines[idx_val] = {
                     "code": idx_val,
@@ -500,15 +599,15 @@ class AcademicPlanParser:
                         "exams": exam_sems,
                         "credits": credit_sems,
                         "graded_credits": graded_credit_sems,
-                        "course_projects": parse_semesters_string(kp_sems),
-                        "course_works": parse_semesters_string(kr_sems)
+                        "course_projects": kp_sems,
+                        "course_works": kr_sems
                     },
                     "total_hours": {
                         "lectures": total_lectures,
                         "laboratory_works": total_labs,
                         "practical_classes": total_practicals,
-                        "self_study": total_cp,
-                        "total": total_lectures + total_labs + total_practicals + total_cp
+                        "self_study": final_self_study,
+                        "total": final_total
                     },
                     "load_by_semester": load_by_semester
                 }

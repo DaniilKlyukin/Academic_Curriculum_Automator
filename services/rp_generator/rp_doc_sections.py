@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Модуль rp_doc_sections.py
-Содержит шаблоны разделов РПД и ФОС с динамическим вычислением дат.
+Содержит шаблоны разделов РПД и ФОС с динамическим вычислением дат и реляционным выводом ЗУН.
 """
 
 import re
@@ -77,7 +77,7 @@ def generate_title_page(doc, metadata: dict, subj_info: dict, staff: dict):
                                align=WD_ALIGN_PARAGRAPH.CENTER)
     add_paragraph_with_spacing(doc,
                                f"общая трудоемкость дисциплины составляет: {subj_info.get('credit_units')} зачетных единиц(ы)",
-                               align=WD_ALIGN_PARAGRAPH.CENTER, space_after=72)
+                               align=WD_ALIGN_PARAGRAPH.CENTER, space_after=144)
 
     add_paragraph_with_spacing(doc, f"Ижевск {start_year}", align=WD_ALIGN_PARAGRAPH.CENTER)
 
@@ -91,7 +91,7 @@ def generate_compilers_page(doc, metadata: dict, subj_info: dict, staff: dict):
     if len(staff["compilers"]) > 1:
         add_paragraph_with_spacing(doc, "Составители:", bold=True, space_after=4)
         for compiler in staff["compilers"]:
-            add_paragraph_with_spacing(doc, f"— {compiler}", space_before=2, space_after=2)
+            add_paragraph_with_spacing(doc, f"\t{compiler}", space_before=2, space_after=2)
     else:
         comp_name = staff["compilers"][0] if staff["compilers"] else "Преподаватель кафедры"
         add_paragraph_with_spacing(doc, f"Составитель: {comp_name}", space_after=12)
@@ -102,7 +102,10 @@ def generate_compilers_page(doc, metadata: dict, subj_info: dict, staff: dict):
                                f"рассмотрена и одобрена на заседании кафедры.")
 
     add_paragraph_with_spacing(doc, f"Протокол от «____» ________________ {start_year} г. №_______", space_after=24)
-    add_paragraph_with_spacing(doc, f"И.о. заведующего кафедрой __________________ {staff['head_of_department']}",
+    hod_role = staff.get("head_of_department_role") or "Заведующий кафедрой"
+    hod_role_cap = hod_role[0].upper() + hod_role[1:] if hod_role else "Заведующий кафедрой"
+
+    add_paragraph_with_spacing(doc, f"{hod_role_cap} __________________ {staff['head_of_department']}",
                                space_after=24)
 
     add_paragraph_with_spacing(doc, "СОГЛАСОВАНО", bold=True, space_after=12)
@@ -116,16 +119,16 @@ def generate_compilers_page(doc, metadata: dict, subj_info: dict, staff: dict):
     faculty_name = metadata.get("faculty") or ""
     ugsn_code, ugsn_name = get_ugsn_info(dir_code, faculty_name)
 
-    add_paragraph_with_spacing(doc, f"Протокол заседания учебно-методической комиссии по УГСН\n"
+    add_paragraph_with_spacing(doc, f"Протокол заседания учебно-методической комиссии по УГСН\n\n"
                                     f"{ugsn_code} «{ugsn_name}» от «____» _______________ {start_year} г. №_______",
                                space_after=24)
 
-    add_paragraph_with_spacing(doc, f"Председатель учебно-методической комиссии по УГСН\n"
-                                    f"{ugsn_code} «{ugsn_name}» _______________________ {staff['umk_chairman']}",
+    add_paragraph_with_spacing(doc, f"Председатель учебно-методической комиссии по УГСН\n\n"
+                                    f"{ugsn_code} «{ugsn_name}» _________________ {staff['umk_chairman']}",
                                space_after=24)
 
     add_paragraph_with_spacing(doc,
-                               f"Руководитель образовательной программы _______________________ {staff['program_director']}")
+                               f"Руководитель образовательной программы _________________ {staff['program_director']}")
 
 
 def generate_annotation_page(doc, metadata: dict, subj_info: dict, subj_ai: dict, mapped_comp: dict,
@@ -200,30 +203,73 @@ def generate_sections_1_2(doc, subj_ai: dict, mapped_comp: dict, comp_registry: 
     add_paragraph_with_spacing(doc, "2. Планируемые результаты обучения", bold=True, space_after=12)
     add_paragraph_with_spacing(doc, "В результате освоения дисциплины у студента должны быть сформированы:")
 
-    # Списки Знаний, Умений и Навыков
-    add_paragraph_with_spacing(doc, "Знания, приобретаемые в ходе освоения дисциплины:", bold=True)
-    knowledge_all = []
-    for entry in subj_ai["pedagogical_frame"].get("indicators_ksa", []):
-        knowledge_all.extend(entry["knowledge"])
-    for idx_k, k in enumerate(list(set(knowledge_all))[:3], start=1):
-        add_paragraph_with_spacing(doc, f"{idx_k}. {k}")
+    # Сбор уникальных глобальных списков ЗУН произвольной длины из структуры ИИ
+    knowledge_list = subj_ai["pedagogical_frame"].get("knowledge_list", [])
+    skills_list = subj_ai["pedagogical_frame"].get("skills_list", [])
+    abilities_list = subj_ai["pedagogical_frame"].get("abilities_list", [])
 
-    add_paragraph_with_spacing(doc, "Умения, приобретаемые в ходе освоения дисциплины:", bold=True)
-    skills_all = []
-    for entry in subj_ai["pedagogical_frame"].get("indicators_ksa", []):
-        skills_all.extend(entry["skills"])
-    for idx_s, s in enumerate(list(set(skills_all))[:3], start=1):
-        add_paragraph_with_spacing(doc, f"{idx_s}. {s}")
+    # Построение маппингов для точного определения индексов
+    knowledge_map = {text: idx for idx, text in enumerate(knowledge_list, start=1)}
+    skills_map = {text: idx for idx, text in enumerate(skills_list, start=1)}
+    abilities_map = {text: idx for idx, text in enumerate(abilities_list, start=1)}
 
-    add_paragraph_with_spacing(doc, "Навыки, приобретаемые в ходе освоения дисциплины:", bold=True)
-    abilities_all = []
-    for entry in subj_ai["pedagogical_frame"].get("indicators_ksa", []):
-        abilities_all.extend(entry["abilities"])
-    for idx_a, a in enumerate(list(set(abilities_all))[:3], start=1):
-        add_paragraph_with_spacing(doc, f"{idx_a}. {a}")
+    # Таблица Знаний
+    add_paragraph_with_spacing(doc, "Знания, приобретаемые в ходе освоения дисциплины:", bold=True, space_before=12,
+                               space_after=6)
+    table_k = doc.add_table(rows=1, cols=2)
+    table_k.alignment = WD_TABLE_ALIGNMENT.CENTER
+    table_k.style = "Table Grid"
+    set_cell_text(table_k.rows[0].cells[0], "№ п/п", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, fill_hex="F2F2F2")
+    set_cell_text(table_k.rows[0].cells[1], "Знания", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, fill_hex="F2F2F2")
+    set_cell_width(table_k.rows[0].cells[0], 1.5)
+    set_cell_width(table_k.rows[0].cells[1], 14.5)
+    for idx_k, k_text in enumerate(knowledge_list, start=1):
+        row_cells = table_k.add_row().cells
+        set_row_cant_split(table_k.rows[-1])
+        set_cell_text(row_cells[0], str(idx_k), align=WD_ALIGN_PARAGRAPH.CENTER, size_pt=10)
+        set_cell_text(row_cells[1], k_text, size_pt=10)
+        set_cell_width(row_cells[0], 1.5)
+        set_cell_width(row_cells[1], 14.5)
 
-    # Таблица распределения ЗУН по индикаторам
-    add_paragraph_with_spacing(doc, "Компетенции, приобретаемые в ходе освоения дисциплины:", bold=True)
+    # Таблица Умений
+    add_paragraph_with_spacing(doc, "Умения, приобретаемые в ходе освоения дисциплины:", bold=True, space_before=12,
+                               space_after=6)
+    table_s = doc.add_table(rows=1, cols=2)
+    table_s.alignment = WD_TABLE_ALIGNMENT.CENTER
+    table_s.style = "Table Grid"
+    set_cell_text(table_s.rows[0].cells[0], "№ п/п", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, fill_hex="F2F2F2")
+    set_cell_text(table_s.rows[0].cells[1], "Умения", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, fill_hex="F2F2F2")
+    set_cell_width(table_s.rows[0].cells[0], 1.5)
+    set_cell_width(table_s.rows[0].cells[1], 14.5)
+    for idx_s, s_text in enumerate(skills_list, start=1):
+        row_cells = table_s.add_row().cells
+        set_row_cant_split(table_s.rows[-1])
+        set_cell_text(row_cells[0], str(idx_s), align=WD_ALIGN_PARAGRAPH.CENTER, size_pt=10)
+        set_cell_text(row_cells[1], s_text, size_pt=10)
+        set_cell_width(row_cells[0], 1.5)
+        set_cell_width(row_cells[1], 14.5)
+
+    # Таблица Навыков
+    add_paragraph_with_spacing(doc, "Навыки, приобретаемые в ходе освоения дисциплины:", bold=True, space_before=12,
+                               space_after=6)
+    table_a = doc.add_table(rows=1, cols=2)
+    table_a.alignment = WD_TABLE_ALIGNMENT.CENTER
+    table_a.style = "Table Grid"
+    set_cell_text(table_a.rows[0].cells[0], "№ п/п", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, fill_hex="F2F2F2")
+    set_cell_text(table_a.rows[0].cells[1], "Навыки", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, fill_hex="F2F2F2")
+    set_cell_width(table_a.rows[0].cells[0], 1.5)
+    set_cell_width(table_a.rows[0].cells[1], 14.5)
+    for idx_a, a_text in enumerate(abilities_list, start=1):
+        row_cells = table_a.add_row().cells
+        set_row_cant_split(table_a.rows[-1])
+        set_cell_text(row_cells[0], str(idx_a), align=WD_ALIGN_PARAGRAPH.CENTER, size_pt=10)
+        set_cell_text(row_cells[1], a_text, size_pt=10)
+        set_cell_width(row_cells[0], 1.5)
+        set_cell_width(row_cells[1], 14.5)
+
+    # Таблица распределения ЗУН по индикаторам (диагональная структура)
+    add_paragraph_with_spacing(doc, "Компетенции, приобретаемые в ходе освоения дисциплины:", bold=True,
+                               space_before=18)
     table_comp = doc.add_table(rows=1, cols=5)
     table_comp.alignment = WD_TABLE_ALIGNMENT.CENTER
     table_comp.style = "Table Grid"
@@ -240,23 +286,34 @@ def generate_sections_1_2(doc, subj_ai: dict, mapped_comp: dict, comp_registry: 
         for i_code in ind_list:
             row_cells = table_comp.add_row().cells
             set_row_cant_split(table_comp.rows[-1])
-            ind_text = f"{i_code}. {comp_registry.get(c_code, {}).get('indicators', {}).get(i_code, {}).get('indicator_text', '')}"
+            ind_desc = comp_registry.get(c_code, {}).get('indicators', {}).get(i_code, {}).get('indicator_text', '')
+            ind_text = f"{i_code}. {ind_desc}"
 
-            # Извлечение актуальных обозначений ЗУН по данному индикатору
-            ksa_entry = next((item for item in subj_ai["pedagogical_frame"].get("indicators_ksa", []) if
-                              item["indicator_code"] == i_code), None)
-            k_labels = ", ".join(
-                f"З{idx}" for idx in range(1, len(ksa_entry.get("knowledge", [])) + 1)) if ksa_entry else ""
-            s_labels = ", ".join(
-                f"У{idx}" for idx in range(1, len(ksa_entry.get("skills", [])) + 1)) if ksa_entry else ""
-            a_labels = ", ".join(
-                f"Н{idx}" for idx in range(1, len(ksa_entry.get("abilities", [])) + 1)) if ksa_entry else ""
+            mapping_entry = next((m for m in subj_ai["pedagogical_frame"].get("indicator_mappings", []) if
+                                  m["indicator_code"] == i_code), None)
+
+            cell_k = ""
+            cell_s = ""
+            cell_a = ""
+
+            if mapping_entry:
+                k_idx = mapping_entry.get("knowledge_indices", [])
+                if k_idx:
+                    cell_k = f"{min(k_idx)}-{max(k_idx)}" if len(k_idx) > 1 else f"{k_idx[0]}-{k_idx[0]}"
+
+                s_idx = mapping_entry.get("skills_indices", [])
+                if s_idx:
+                    cell_s = f"{min(s_idx)}-{max(s_idx)}" if len(s_idx) > 1 else f"{s_idx[0]}-{s_idx[0]}"
+
+                a_idx = mapping_entry.get("abilities_indices", [])
+                if a_idx:
+                    cell_a = f"{min(a_idx)}-{max(a_idx)}" if len(a_idx) > 1 else f"{a_idx[0]}-{a_idx[0]}"
 
             set_cell_text(row_cells[0], comp_text, size_pt=10)
             set_cell_text(row_cells[1], ind_text, size_pt=10)
-            set_cell_text(row_cells[2], k_labels or "–", size_pt=10, align=WD_ALIGN_PARAGRAPH.CENTER)
-            set_cell_text(row_cells[3], s_labels or "–", size_pt=10, align=WD_ALIGN_PARAGRAPH.CENTER)
-            set_cell_text(row_cells[4], a_labels or "–", size_pt=10, align=WD_ALIGN_PARAGRAPH.CENTER)
+            set_cell_text(row_cells[2], cell_k, size_pt=10, align=WD_ALIGN_PARAGRAPH.CENTER)
+            set_cell_text(row_cells[3], cell_s, size_pt=10, align=WD_ALIGN_PARAGRAPH.CENTER)
+            set_cell_text(row_cells[4], cell_a, size_pt=10, align=WD_ALIGN_PARAGRAPH.CENTER)
 
     # Применение вертикального объединения дубликатов компетенций в первом столбце
     merge_cells_vertically(table_comp, 0)
@@ -282,9 +339,20 @@ def generate_section_3(doc, subj_info: dict, subj_ai: dict):
     add_paragraph_with_spacing(doc, f"Последующие дисциплины: {subj_ai['pedagogical_frame']['postrequisites_text']}")
 
 
+def get_questions_for_competency(c_code: str, discipline_name: str, subj_ai: dict) -> list:
+    """Возвращает набор из 5 тестовых вопросов по компетенции из JSON-файла ИИ-генератора."""
+    competency_tests = subj_ai.get("resources_and_evaluation", {}).get("competency_tests", [])
+    for test_block in competency_tests:
+        if test_block.get("competency_code") == c_code:
+            questions = test_block.get("questions", [])
+            if len(questions) >= 5:
+                return questions[:5]
+    return []
+
+
 def generate_fos_appendix(doc, metadata: dict, subj_info: dict, subj_ai: dict, mapped_comp: dict, comp_registry: dict,
                           sems_active: list):
-    """Генерация приложения оценочных средств (ФОС) с динамическим получением тестов и вопросов из JSON."""
+    """Генерация приложения оценочных средств (ФОС) из структурированных JSON-данных."""
     doc.add_page_break()
     start_year = metadata.get("start_year") or "2026"
     add_paragraph_with_spacing(doc, "Приложение к рабочей программе дисциплины", italic=True,
@@ -310,10 +378,18 @@ def generate_fos_appendix(doc, metadata: dict, subj_info: dict, subj_ai: dict, m
                                align=WD_ALIGN_PARAGRAPH.CENTER)
     add_paragraph_with_spacing(doc, f"форма обучения: {metadata.get('education_form')}",
                                align=WD_ALIGN_PARAGRAPH.CENTER, space_after=18)
+    add_paragraph_with_spacing(doc,
+                               f"общая трудоемкость дисциплины составляет: {subj_info.get('credit_units')} зачетных единиц(ы)",
+                               align=WD_ALIGN_PARAGRAPH.CENTER)
 
-    # Принудительный перенос первой таблицы оценочных средств на новую чистую страницу
+    # Перенос таблицы на новую страницу
     doc.add_page_break()
     add_paragraph_with_spacing(doc, "1. Оценочные средства", bold=True, space_after=12)
+    add_paragraph_with_spacing(doc,
+                               """Оценивание формирования компетенций производится на основе результатов обучения, приведенных в п. 2 рабочей программы и ФОС. Связь разделов компетенций, индикаторов и форм контроля (текущего и промежуточного) указаны в таблице 4.2 рабочей программы дисциплины.
+Оценочные средства соотнесены с результатами обучения по дисциплине и индикаторами достижения компетенций, представлены ниже.""",
+                               space_after=12)
+
     table_fos_map = doc.add_table(rows=1, cols=4)
     table_fos_map.alignment = WD_TABLE_ALIGNMENT.CENTER
     table_fos_map.style = "Table Grid"
@@ -325,6 +401,11 @@ def generate_fos_appendix(doc, metadata: dict, subj_info: dict, subj_ai: dict, m
         set_cell_text(table_fos_map.rows[0].cells[idx_f], f_text, bold=True, size_pt=10,
                       align=WD_ALIGN_PARAGRAPH.CENTER, fill_hex="F2F2F2")
 
+    # Считывание пулов для сопоставления индексов в таблице 1 ФОС
+    knowledge_list = subj_ai["pedagogical_frame"].get("knowledge_list", [])
+    skills_list = subj_ai["pedagogical_frame"].get("skills_list", [])
+    abilities_list = subj_ai["pedagogical_frame"].get("abilities_list", [])
+
     idx_row = 1
     for c_code, ind_list in mapped_comp.items():
         for i_code in ind_list:
@@ -332,18 +413,27 @@ def generate_fos_appendix(doc, metadata: dict, subj_info: dict, subj_ai: dict, m
             set_row_cant_split(table_fos_map.rows[-1])
 
             set_cell_text(r_cells[0], str(idx_row), align=WD_ALIGN_PARAGRAPH.CENTER, size_pt=10)
-            set_cell_text(r_cells[1], i_code, align=WD_ALIGN_PARAGRAPH.CENTER, size_pt=10)
 
-            # Сбор ЗУН
+            # Объединение кода и описания индикатора в ячейке
+            ind_desc = comp_registry.get(c_code, {}).get('indicators', {}).get(i_code, {}).get('indicator_text', '')
+            full_indicator_text = f"{i_code}. {ind_desc}" if ind_desc else i_code
+            set_cell_text(r_cells[1], full_indicator_text, size_pt=10, align=WD_ALIGN_PARAGRAPH.LEFT)
+
+            # Группировка ЗУН по конкретному индикатору со ссылкой на глобальные индексы
             ksa_strings = []
-            for ksa_entry in subj_ai["pedagogical_frame"].get("indicators_ksa", []):
-                if ksa_entry["indicator_code"] == i_code:
-                    for idx_k, k_text in enumerate(ksa_entry["knowledge"], start=1):
-                        ksa_strings.append(f"З{idx_k}: {k_text}")
-                    for idx_s, s_text in enumerate(ksa_entry["skills"], start=1):
-                        ksa_strings.append(f"У{idx_s}: {s_text}")
-                    for idx_a, a_text in enumerate(ksa_entry["abilities"], start=1):
-                        ksa_strings.append(f"Н{idx_a}: {a_text}")
+            mapping_entry = next((m for m in subj_ai["pedagogical_frame"].get("indicator_mappings", []) if
+                                  m["indicator_code"] == i_code), None)
+
+            if mapping_entry:
+                for k_idx in mapping_entry.get("knowledge_indices", []):
+                    if 0 < k_idx <= len(knowledge_list):
+                        ksa_strings.append(f"З{k_idx}: {knowledge_list[k_idx - 1]}")
+                for s_idx in mapping_entry.get("skills_indices", []):
+                    if 0 < s_idx <= len(skills_list):
+                        ksa_strings.append(f"У{s_idx}: {skills_list[s_idx - 1]}")
+                for a_idx in mapping_entry.get("abilities_indices", []):
+                    if 0 < a_idx <= len(abilities_list):
+                        ksa_strings.append(f"Н{a_idx}: {abilities_list[a_idx - 1]}")
 
             total_hours_dict = subj_info.get("total_hours", {})
             labs_h = total_hours_dict.get("laboratory_works", 0)
@@ -360,137 +450,463 @@ def generate_fos_appendix(doc, metadata: dict, subj_info: dict, subj_ai: dict, m
             set_cell_text(r_cells[3], control_text, size_pt=10)
             idx_row += 1
 
-    # Вертикальное объединение по первому столбцу кодов индикаторов в ФОС
+    # Вертикальное объединение
     merge_cells_vertically(table_fos_map, 1)
 
-    # Тестирование с ключами к тестам
-    add_paragraph_with_spacing(doc)
+    # Вывод вопросов по каждой активной форме промежуточной аттестации
+    add_paragraph_with_spacing(doc, space_before=18)
+    control_forms = subj_info.get("control_forms", {})
+    form_types = [
+        ("exams", "экзамен", "экзамена"),
+        ("graded_credits", "зачет с оценкой", "зачета с оценкой"),
+        ("credits", "зачет", "зачета")
+    ]
+
+    for key, form_name_nom, form_name_gen in form_types:
+        sems = control_forms.get(key, [])
+        if sems:
+            add_paragraph_with_spacing(doc, f"Наименование: {form_name_nom}", bold=True, space_before=12)
+            add_paragraph_with_spacing(doc, "Представление в ФОС: перечень вопросов", italic=True)
+            add_paragraph_with_spacing(doc, f"Перечень вопросов для проведения {form_name_gen}:", bold=True,
+                                       space_after=6)
+
+            for sem in sems:
+                add_paragraph_with_spacing(doc, f"{sem} семестр:", italic=True, bold=True, space_before=6)
+
+                # Чтение контрольных вопросов из JSON
+                questions = subj_ai.get("resources_and_evaluation", {}).get("control_questions", [])
+                for q_idx, q_text in enumerate(questions, start=1):
+                    add_paragraph_with_spacing(doc, f"{q_idx}. {q_text}", space_before=2, space_after=2)
+
+            # Обязательная надпись без ответов
+            add_paragraph_with_spacing(doc, "Критерии оценки:", bold=True, space_before=6)
+            add_paragraph_with_spacing(doc, "Приведены в разделе 2.", space_after=12)
+
+    # Тестирование с ключами к тестам ДЛЯ КАЖДОЙ КОМПЕТЕНЦИИ ИЗ JSON
+    add_paragraph_with_spacing(doc, space_before=18)
     add_paragraph_with_spacing(doc, "Наименование: проверочный тест", bold=True)
     add_paragraph_with_spacing(doc, "Представление в ФОС: набор вопросов для проведения тестирования", italic=True)
 
-    # Динамический сбор тестовых вопросов из JSON-базы
-    test_questions = subj_ai.get("resources_and_evaluation", {}).get("test_questions", [])
+    competency_tests = subj_ai.get("resources_and_evaluation", {}).get("competency_tests", [])
 
-    # Резервный универсальный вариант на случай отсутствия тестов в исходном JSON
-    if not test_questions:
-        test_questions = [
-            {
-                "question": f"Что является главным объектом изучения дисциплины «{subj_info['name']}»?",
-                "options": [
-                    "Теоретические концепции и базовые определения дисциплины",
-                    "Вспомогательные инструменты сторонних предметных областей",
-                    "Программные методы без привязки к теоретическому базису",
-                    "Организационно-правовые аспекты деятельности сторонних ведомств"
-                ],
-                "correct_answer": "1"
-            },
-            {
-                "question": f"Какой метод наиболее часто применяется в рамках «{subj_info['name']}»?",
-                "options": [
-                    "Метод субъективных экспертных допущений",
-                    "Системный анализ и комплексное моделирование процессов",
-                    "Случайный подбор экспериментальных параметров",
-                    "Интуитивный подход к проектированию систем"
-                ],
-                "correct_answer": "2"
-            },
-            {
-                "question": "Что представляет собой методология предметной области?",
-                "options": [
-                    "Хаотичный набор практических рекомендаций",
-                    "Система принципов и способов организации теоретической и практической деятельности",
-                    "Второстепенный раздел учебной программы",
-                    "Субъективное видение процесса разработки"
-                ],
-                "correct_answer": "2"
-            },
-            {
-                "question": f"Какой результат освоения дисциплины «{subj_info['name']}» является приоритетным?",
-                "options": [
-                    "Отказ от использования современных инструментальных средств",
-                    "Способность эффективно решать профессиональные задачи на основе полученных знаний и умений",
-                    "Изучение только теоретических аспектов без практической применимости",
-                    "Ориентация исключительно на исторический опыт ведения разработок"
-                ],
-                "correct_answer": "2"
-            },
-            {
-                "question": "Какие требования предъявляются к уровню освоения учебного материала?",
-                "options": [
-                    "Поверхностное ознакомление без закрепления практических навыков",
-                    "Отказ от самостоятельного выполнения разделов программы",
-                    "Формирование компетенций, установленных государственным образовательным стандартом",
-                    "Оценка успеваемости на основе случайного распределения баллов"
-                ],
-                "correct_answer": "3"
-            }
-        ]
+    for c_test in competency_tests:
+        c_code = c_test.get("competency_code", "")
+        comp_text = comp_registry.get(c_code, {}).get('competency_text', '')
+        add_paragraph_with_spacing(doc, f"Компетенция {c_code}. {comp_text}", bold=True, space_before=12,
+                                   space_after=6)
 
-    # Вывод вопросов теста на страницу
-    for idx_q, q_item in enumerate(test_questions, start=1):
-        add_paragraph_with_spacing(doc, f"{idx_q}. {q_item['question']}")
-        for opt_idx, option in enumerate(q_item["options"], start=1):
-            add_paragraph_with_spacing(doc, f"   {opt_idx}) {option}", space_before=2, space_after=2)
+        questions = c_test.get("questions", [])
+        for idx_q, q_item in enumerate(questions, start=1):
+            add_paragraph_with_spacing(doc, f"{idx_q}. {q_item['question']}", space_before=4)
+            for opt_idx, option in enumerate(q_item["options"], start=1):
+                add_paragraph_with_spacing(doc, f"   {opt_idx}) {option}", space_before=1, space_after=1)
 
-    # Динамический вывод таблицы Ключей тестов в соответствии с фактическим количеством вопросов
-    add_paragraph_with_spacing(doc, "Ключи теста:", bold=True, space_before=12, space_after=6)
-    num_cols = len(test_questions) + 1
-    table_keys = doc.add_table(rows=2, cols=num_cols)
-    table_keys.alignment = WD_TABLE_ALIGNMENT.CENTER
-    table_keys.style = "Table Grid"
+        # Вывод таблицы Ключей для теста данной компетенции
+        add_paragraph_with_spacing(doc, "Ключи теста:", bold=True, space_before=6, space_after=6)
+        num_cols = len(questions) + 1
+        table_keys = doc.add_table(rows=2, cols=num_cols)
+        table_keys.alignment = WD_TABLE_ALIGNMENT.CENTER
+        table_keys.style = "Table Grid"
 
-    set_cell_text(table_keys.rows[0].cells[0], "Вопрос", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, fill_hex="F2F2F2")
-    set_cell_text(table_keys.rows[1].cells[0], "Ответ", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, fill_hex="F2F2F2")
+        set_cell_text(table_keys.rows[0].cells[0], "Вопрос", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER,
+                      fill_hex="F2F2F2")
+        set_cell_text(table_keys.rows[1].cells[0], "Ответ", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER,
+                      fill_hex="F2F2F2")
 
-    for idx_tk, q_item in enumerate(test_questions, start=1):
-        set_cell_text(table_keys.rows[0].cells[idx_tk], str(idx_tk), bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
-        set_cell_text(table_keys.rows[1].cells[idx_tk], str(q_item["correct_answer"]), align=WD_ALIGN_PARAGRAPH.CENTER)
+        for idx_tk, q_item in enumerate(questions, start=1):
+            set_cell_text(table_keys.rows[0].cells[idx_tk], str(idx_tk), bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
+            set_cell_text(table_keys.rows[1].cells[idx_tk], str(q_item["correct_answer"]),
+                          align=WD_ALIGN_PARAGRAPH.CENTER)
 
-    # Экзаменационный билет
+    # Генерация примера билета (при наличии экзамена или дифференцированного зачета)
+    has_exam = len(control_forms.get("exams", [])) > 0
+    has_graded = len(control_forms.get("graded_credits", [])) > 0
+
+    if has_exam or has_graded:
+        add_paragraph_with_spacing(doc, space_before=18)
+        ticket_label = "Пример экзаменационного билета:" if has_exam else "Пример билета для зачета с оценкой:"
+        add_paragraph_with_spacing(doc, ticket_label, bold=True, space_after=12)
+
+        table_ticket = doc.add_table(rows=1, cols=1)
+        table_ticket.alignment = WD_TABLE_ALIGNMENT.CENTER
+        table_ticket.style = "Table Grid"
+        set_row_cant_split(table_ticket.rows[0])
+
+        cell_ticket = table_ticket.rows[0].cells[0]
+        cell_ticket.width = Cm(15.0)
+
+        p_ticket = cell_ticket.paragraphs[0]
+        p_ticket.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+        run_h1 = p_ticket.add_run(
+            "\nФГБОУ ВО «Ижевский государственный технический университет имени М.Т. Калашникова»\n\n")
+        set_font(run_h1, size_pt=9)
+
+        ticket_num_text = "ЭКЗАМЕНАЦИОННЫЙ БИЛЕТ № 1\n" if has_exam else "ОЦЕНОЧНЫЙ БИЛЕТ ДЛЯ ЗАЧЕТА С ОЦЕНКОЙ № 1\n"
+        run_title = p_ticket.add_run(ticket_num_text)
+        set_font(run_title, size_pt=12, bold=True)
+
+        run_sub = p_ticket.add_run(
+            f"по дисциплине «{subj_info['name']}»\nдля направления {metadata.get('direction_code')} «{metadata.get('direction_name')}»\n\n")
+        set_font(run_sub, size_pt=10, italic=True)
+
+        # Чтение вопросов для билета из ФОС JSON
+        questions_ticket = subj_ai.get("resources_and_evaluation", {}).get("control_questions", [])[:3]
+        if len(questions_ticket) < 3:
+            questions_ticket = [
+                "Теоретический вопрос по первому разделу дисциплины.",
+                "Теоретический вопрос по второму разделу дисциплины.",
+                "Практическое задание на применение изученных алгоритмов и методов."
+            ]
+
+        for idx_q, q_text in enumerate(questions_ticket, start=1):
+            run_q = p_ticket.add_run(f"{idx_q}. {q_text}\n")
+            set_font(run_q, size_pt=11)
+
+        dept_name = subj_info.get("department_name") or metadata.get("department") or "Прикладная математика"
+        dept_abbr = get_department_acronym(dept_name)
+
+        run_footer = p_ticket.add_run(
+            f"\nБилет рассмотрен на заседании кафедры {dept_abbr} от «____» _______________ {start_year} г.\n")
+        set_font(run_footer, size_pt=9, italic=True)
+
+    add_paragraph_with_spacing(doc)
+    generate_evaluation_criteria_section(doc, subj_info, subj_ai)
+
+
+def generate_evaluation_criteria_section(doc, subj_info: dict, subj_ai: dict):
+    """Генерирует раздел '2. Критерии и шкалы оценивания' с динамическим БРС-распределением."""
     add_paragraph_with_spacing(doc, space_before=18)
-    add_paragraph_with_spacing(doc, "Пример экзаменационного билета:", bold=True, space_after=12)
+    add_paragraph_with_spacing(doc, "2. Критерии и шкалы оценивания", bold=True, space_after=12)
+    add_paragraph_with_spacing(doc,
+                               "Результат обучения по дисциплине считается достигнутым при успешном прохождении "
+                               "обучающимся всех контрольных мероприятий, относящихся к данному результату обучения.",
+                               space_after=12
+                               )
 
-    table_ticket = doc.add_table(rows=1, cols=1)
-    table_ticket.alignment = WD_TABLE_ALIGNMENT.CENTER
-    table_ticket.style = "Table Grid"
-    set_row_cant_split(table_ticket.rows[0])
-    cell_ticket = table_ticket.rows[0].cells[0]
-    cell_ticket.width = Cm(15.0)
+    # 1. Сбор количества лабораторных и практических работ
+    num_labs = len(subj_ai.get("thematic_plan", {}).get("labs", []))
+    num_pracs = len(subj_ai.get("thematic_plan", {}).get("practicals", []))
 
-    # Оформление рамки экзаменационного билета
-    p_ticket = cell_ticket.paragraphs[0]
-    p_ticket.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run_h1 = p_ticket.add_run("ФГБОУ ВО «Ижевский государственный технический университет имени М.Т. Калашникова»\n\n")
-    set_font(run_h1, size_pt=9)
+    # Динамическое распределение баллов БРС (Всего: max = 100, min = 80)
+    events = []
+    test_max = 20
+    remaining_points = 80
 
-    run_title = p_ticket.add_run("ЭКЗАМЕНАЦИОННЫЙ БИЛЕТ № 1\n")
-    set_font(run_title, size_pt=12, bold=True)
+    if num_labs > 0 and num_pracs > 0:
+        labs_share = 40
+        pracs_share = 40
+    elif num_labs > 0:
+        labs_share = 80
+        pracs_share = 0
+    elif num_pracs > 0:
+        labs_share = 0
+        pracs_share = 80
+    else:
+        labs_share = 0
+        pracs_share = 0
+        # Если работы отсутствуют, создаем 4 дефолтных этапа контроля успеваемости
+        default_events = 4
+        each_max = remaining_points // default_events
+        remainder = remaining_points % default_events
+        for i in range(1, default_events + 1):
+            m_val = each_max + (1 if i <= remainder else 0)
+            events.append({
+                "name": f"Защита устного опроса / собеседования №{i}",
+                "max": m_val,
+                "min": int(round(0.8 * m_val))
+            })
 
-    run_sub = p_ticket.add_run(
-        f"по дисциплине «{subj_info['name']}»\nдля направления {metadata.get('direction_code')} «{metadata.get('direction_name')}»\n\n")
-    set_font(run_sub, size_pt=10, italic=True)
+    # Расчет баллов для лабораторных
+    if labs_share > 0:
+        each_max = labs_share // num_labs
+        remainder = labs_share % num_labs
+        for i in range(1, num_labs + 1):
+            m_val = each_max + (1 if i <= remainder else 0)
+            events.append({
+                "name": f"Защита лабораторной работы №{i}",
+                "max": m_val,
+                "min": int(round(0.8 * m_val))
+            })
 
-    # Извлечение контрольных вопросов
-    questions_ticket = subj_ai.get("resources_and_evaluation", {}).get("control_questions", [])[:3]
+    # Расчет баллов для практических
+    if pracs_share > 0:
+        each_max = pracs_share // num_pracs
+        remainder = pracs_share % num_pracs
+        for i in range(1, num_pracs + 1):
+            m_val = each_max + (1 if i <= remainder else 0)
+            events.append({
+                "name": f"Защита практической работы №{i}",
+                "max": m_val,
+                "min": int(round(0.8 * m_val))
+            })
 
-    # Универсальный непогрешимый fallback на случай, если вопросов в базе недостаточно
-    if len(questions_ticket) < 3:
-        questions_ticket = [
-            f"Теоретические основы и терминологический аппарат дисциплины «{subj_info['name']}».",
-            f"Анализ ключевых концепций, алгоритмов и методов, изученных в рамках курса «{subj_info['name']}».",
-            f"Практическое задание на применение методов и подходов дисциплины «{subj_info['name']}» для решения прикладной задачи."
-        ]
+    # Добавление финального проверочного теста
+    events.append({
+        "name": "Проверочное тестирование",
+        "max": test_max,
+        "min": int(round(0.8 * test_max))
+    })
 
-    for idx_q, q_text in enumerate(questions_ticket, start=1):
-        run_q = p_ticket.add_run(f"{idx_q}. {q_text}\n")
-        set_font(run_q, size_pt=11)
+    # Точная корректировка суммы min до 80 во избежание погрешностей округления
+    total_min = sum(e["min"] for e in events)
+    diff_min = 80 - total_min
+    if diff_min != 0 and len(events) > 0:
+        events[-1]["min"] += diff_min
 
-    # Извлечение аббревиатуры кафедры
-    dept_name = subj_info.get("department_name") or metadata.get(
-        "department") or "Прикладная математика и информационные технологии"
-    dept_abbr = get_department_acronym(dept_name)
+    # Создание таблицы БРС
+    table_brs = doc.add_table(rows=1, cols=4)
+    table_brs.alignment = WD_TABLE_ALIGNMENT.CENTER
+    table_brs.style = "Table Grid"
 
-    # Исключение захардкоденной даты (заменено на стандартное поле заполнения по ГОСТ)
-    run_footer = p_ticket.add_run(
-        f"\nБилет рассмотрен на заседании кафедры {dept_abbr} от «____» _______________ {start_year} г.")
-    set_font(run_footer, size_pt=9, italic=True)
+    hdr_cells = table_brs.rows[0].cells
+    set_cell_text(hdr_cells[0], "Разделы дисциплины", bold=True, size_pt=10, align=WD_ALIGN_PARAGRAPH.CENTER,
+                  fill_hex="F2F2F2")
+    set_cell_text(hdr_cells[1], "Форма контроля", bold=True, size_pt=10, align=WD_ALIGN_PARAGRAPH.CENTER,
+                  fill_hex="F2F2F2")
+    set_cell_text(hdr_cells[2], "Количество баллов (min)", bold=True, size_pt=10, align=WD_ALIGN_PARAGRAPH.CENTER,
+                  fill_hex="F2F2F2")
+    set_cell_text(hdr_cells[3], "Количество баллов (max)", bold=True, size_pt=10, align=WD_ALIGN_PARAGRAPH.CENTER,
+                  fill_hex="F2F2F2")
+
+    num_sections = len(subj_ai.get("thematic_plan", {}).get("sections", []))
+
+    for idx_ev, ev in enumerate(events, start=1):
+        row_cells = table_brs.add_row().cells
+        set_row_cant_split(table_brs.rows[-1])
+
+        # Равномерное сопоставление контрольных точек с разделами плана
+        if idx_ev <= num_sections:
+            section_lbl = str(idx_ev)
+        elif idx_ev == len(events):
+            section_lbl = "Все" if num_sections == 0 else f"1-{num_sections}"
+        else:
+            section_lbl = str(num_sections) if num_sections > 0 else "1"
+
+        set_cell_text(row_cells[0], section_lbl, align=WD_ALIGN_PARAGRAPH.CENTER, size_pt=10)
+        set_cell_text(row_cells[1], ev["name"], size_pt=10)
+        set_cell_text(row_cells[2], str(ev["min"]), align=WD_ALIGN_PARAGRAPH.CENTER, size_pt=10)
+        set_cell_text(row_cells[3], str(ev["max"]), align=WD_ALIGN_PARAGRAPH.CENTER, size_pt=10)
+
+    # Строка Итого в БРС
+    total_row = table_brs.add_row().cells
+    set_row_cant_split(table_brs.rows[-1])
+    set_cell_text(total_row[0], "", size_pt=10)
+    set_cell_text(total_row[1], "Итого", bold=True, size_pt=10)
+    set_cell_text(total_row[2], "80", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, size_pt=10)
+    set_cell_text(total_row[3], "100", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, size_pt=10)
+
+    # Пояснительный текст под таблицей БРС
+    add_paragraph_with_spacing(doc, space_before=12)
+    add_paragraph_with_spacing(doc,
+                               "При оценивании результатов обучения по дисциплине в ходе текущего контроля "
+                               "успеваемости используются следующие критерии. Минимальное количество баллов выставляется "
+                               "обучающемуся при выполнении всех показателей, допускаются несущественные неточности "
+                               "в изложении и оформлении материала.",
+                               space_after=12
+                               )
+
+    # Таблица показателей выполнения работ
+    table_indicators = doc.add_table(rows=1, cols=2)
+    table_indicators.alignment = WD_TABLE_ALIGNMENT.CENTER
+    table_indicators.style = "Table Grid"
+
+    ind_hdr = table_indicators.rows[0].cells
+    set_cell_text(ind_hdr[0], "Наименование, обозначение", bold=True, size_pt=10, align=WD_ALIGN_PARAGRAPH.CENTER,
+                  fill_hex="F2F2F2")
+    set_cell_text(ind_hdr[1], "Показатели выставления минимального количества баллов", bold=True, size_pt=10,
+                  align=WD_ALIGN_PARAGRAPH.CENTER, fill_hex="F2F2F2")
+    set_cell_width(ind_hdr[0], 4.0)
+    set_cell_width(ind_hdr[1], 12.0)
+
+    if num_labs > 0:
+        row_l = table_indicators.add_row().cells
+        set_row_cant_split(table_indicators.rows[-1])
+        set_cell_text(row_l[0], "Лабораторная работа", bold=True, size_pt=10)
+        set_cell_text(row_l[1],
+                      "Лабораторная работа выполнена в полном объеме;\n"
+                      "Представлен отчет, содержащий необходимые расчеты, выводы, оформленный в соответствии с установленными требованиями;\n"
+                      "Продемонстрирован удовлетворительный уровень владения материалом при защите лабораторной работы, даны правильные ответы не менее чем на 50% заданных вопросов.",
+                      size_pt=10
+                      )
+        set_cell_width(row_l[0], 4.0)
+        set_cell_width(row_l[1], 12.0)
+
+    if num_pracs > 0:
+        row_p = table_indicators.add_row().cells
+        set_row_cant_split(table_indicators.rows[-1])
+        set_cell_text(row_p[0], "Практическая работа", bold=True, size_pt=10)
+        set_cell_text(row_p[1],
+                      "Продемонстрирован удовлетворительный уровень владения материалом.\n"
+                      "Правильно решено не менее 50% заданий.",
+                      size_pt=10
+                      )
+        set_cell_width(row_p[0], 4.0)
+        set_cell_width(row_p[1], 12.0)
+
+    if num_labs == 0 and num_pracs == 0:
+        row_o = table_indicators.add_row().cells
+        set_row_cant_split(table_indicators.rows[-1])
+        set_cell_text(row_o[0], "Собеседование", bold=True, size_pt=10)
+        set_cell_text(row_o[1],
+                      "Продемонстрирован достаточный уровень усвоения теоретических понятий.\n"
+                      "Даны правильные и структурированные ответы на контрольные вопросы.",
+                      size_pt=10
+                      )
+        set_cell_width(row_o[0], 4.0)
+        set_cell_width(row_o[1], 12.0)
+
+    # 3. Формирование динамических описаний промежуточной аттестации
+    control_forms = subj_info.get("control_forms", {})
+    exams_sems = control_forms.get("exams", [])
+    gc_sems = control_forms.get("graded_credits", [])
+    c_sems = control_forms.get("credits", [])
+
+    control_parts = []
+    if exams_sems:
+        sem_str = ", ".join(map(str, exams_sems))
+        suffix = "семестр" if len(exams_sems) == 1 else "семестры"
+        control_parts.append(f"экзамена ({sem_str} {suffix})")
+    if gc_sems:
+        sem_str = ", ".join(map(str, gc_sems))
+        suffix = "семестр" if len(gc_sems) == 1 else "семестры"
+        control_parts.append(f"зачета с оценкой ({sem_str} {suffix})")
+    if c_sems:
+        sem_str = ", ".join(map(str, c_sems))
+        suffix = "семестр" if len(c_sems) == 1 else "семестры"
+        control_parts.append(f"зачета ({sem_str} {suffix})")
+
+    if len(control_parts) > 1:
+        control_str = ", ".join(control_parts[:-1]) + " и " + control_parts[-1]
+    elif len(control_parts) == 1:
+        control_str = control_parts[0]
+    else:
+        control_str = "экзамена"
+
+    add_paragraph_with_spacing(doc, space_before=12)
+    add_paragraph_with_spacing(doc,
+                               f"Промежуточная аттестация по дисциплине проводится в форме {control_str}.\n"
+                               "Итоговая оценка по дисциплине может быть выставлена на основе результатов текущего "
+                               "контроля с использованием следующей шкалы:",
+                               space_after=6
+                               )
+
+    # Вывод шкалы БРС (дифференцированная vs недифференцированная)
+    table_scale = doc.add_table(rows=1, cols=2)
+    table_scale.alignment = WD_TABLE_ALIGNMENT.CENTER
+    table_scale.style = "Table Grid"
+
+    scale_hdr = table_scale.rows[0].cells
+    set_cell_text(scale_hdr[0], "Оценка", bold=True, size_pt=10, align=WD_ALIGN_PARAGRAPH.CENTER, fill_hex="F2F2F2")
+    set_cell_text(scale_hdr[1], "Набрано баллов", bold=True, size_pt=10, align=WD_ALIGN_PARAGRAPH.CENTER,
+                  fill_hex="F2F2F2")
+
+    scales = []
+    if exams_sems or gc_sems:
+        scales.append(("«отлично»", "90-100"))
+        scales.append(("«хорошо»", "75-89"))
+        scales.append(("«удовлетворительно»", "50-74"))
+        scales.append(("«неудовлетворительно»", "0-49"))
+    else:
+        scales.append(("«зачтено»", "50-100"))
+        scales.append(("«не зачтено»", "0-49"))
+
+    for grade, points in scales:
+        row_s = table_scale.add_row().cells
+        set_row_cant_split(table_scale.rows[-1])
+        set_cell_text(row_s[0], grade, align=WD_ALIGN_PARAGRAPH.CENTER, size_pt=10)
+        set_cell_text(row_s[1], points, align=WD_ALIGN_PARAGRAPH.CENTER, size_pt=10)
+
+    add_paragraph_with_spacing(doc, space_before=12)
+    add_paragraph_with_spacing(doc,
+                               "Если сумма набранных баллов менее 50 – обучающийся не допускается до промежуточной аттестации.")
+    add_paragraph_with_spacing(doc,
+                               "Если сумма баллов составляет от 50 до 100 баллов, обучающийся допускается до промежуточной аттестации.",
+                               space_after=6)
+
+    ticket_types = []
+    if gc_sems:
+        ticket_types.append("зачету с оценкой")
+    if exams_sems:
+        ticket_types.append("экзамену")
+    if c_sems and not (gc_sems or exams_sems):
+        ticket_types.append("зачету")
+
+    ticket_types_str = ", ".join(ticket_types)
+    if len(ticket_types) > 1:
+        ticket_types_str = ", ".join(ticket_types[:-1]) + " и " + ticket_types[-1]
+
+    ticket_desc = f"Билет к {ticket_types_str} включает 1 теоретический и 2 практических задания."
+
+    add_paragraph_with_spacing(doc,
+                               f"{ticket_desc} Промежуточная аттестация проводится в письменной форме. "
+                               "Время на подготовку: 60-90 минут. При оценивании результатов обучения по дисциплине в ходе "
+                               "промежуточной аттестации используются следующие критерии и шкала оценки:",
+                               space_after=6
+                               )
+
+    # Таблица детальных критериев оценивания ответов на билеты
+    table_desc = doc.add_table(rows=1, cols=2)
+    table_desc.alignment = WD_TABLE_ALIGNMENT.CENTER
+    table_desc.style = "Table Grid"
+
+    desc_hdr = table_desc.rows[0].cells
+    set_cell_text(desc_hdr[0], "Оценка", bold=True, size_pt=10, align=WD_ALIGN_PARAGRAPH.CENTER, fill_hex="F2F2F2")
+    set_cell_text(desc_hdr[1], "Критерии оценки", bold=True, size_pt=10, align=WD_ALIGN_PARAGRAPH.CENTER,
+                  fill_hex="F2F2F2")
+    set_cell_width(desc_hdr[0], 4.0)
+    set_cell_width(desc_hdr[1], 12.0)
+
+    criteria_entries = []
+    if exams_sems or gc_sems:
+        criteria_entries.append((
+            "«отлично»",
+            "Обучающийся показал всестороннее, систематическое и глубокое знание учебного материала, "
+            "предусмотренного программой, умение уверенно применять на их практике при решении задач (выполнении заданий), "
+            "способность полно, правильно и аргументировано отвечать на вопросы и делать необходимые выводы. "
+            "Свободно использует основную литературу и знаком с дополнительной литературой, рекомендованной программой."
+        ))
+        criteria_entries.append((
+            "«хорошо»",
+            "Обучающийся показал полное знание теоретического материала, владение основной литературой, "
+            "рекомендованной в программе, умение самостоятельно решать задачи (выполнять задания), "
+            "способность аргументировано отвечать на вопросы и делать необходимые выводы, допускает единичные ошибки, "
+            "исправляемые после замечания преподавателя. Способен к самостоятельному пополнению и обновлению "
+            "знаний в ходе дальнейшей учебной работы и профессиональной деятельности."
+        ))
+        criteria_entries.append((
+            "«удовлетворительно»",
+            "Обучающийся демонстрирует неполное или фрагментарное знание основного учебного материала, "
+            "допускает существенные ошибки в его изложении, испытывает затруднения и допускает ошибки при выполнении "
+            "заданий (решении задач), выполняет задание при подсказке преподавателя, затрудняется в формулировке выводов. "
+            "Владеет знанием основных разделов, необходимых для дальнейшего обучения, знаком с основной и "
+            "дополнительной литературой, рекомендованной программой."
+        ))
+        criteria_entries.append((
+            "«неудовлетворительно»",
+            "Обучающийся при ответе демонстрирует существенные пробелы в знаниях основного учебного материала, "
+            "допускает грубые ошибки в формулировании основных понятий и при решении типовых задач (при выполнении "
+            "типовых заданий), не способен ответить на наводящие вопросы преподавателя. Оценка ставится обучающимся, "
+            "которые не могут продолжить обучение или приступить к профессиональной деятельности по окончании "
+            "образовательного учреждения без дополнительных занятий по рассматриваемой дисциплине."
+        ))
+    else:
+        criteria_entries.append((
+            "«зачтено»",
+            "Обучающийся продемонстрировал знание теоретического материала в объеме, достаточном для "
+            "понимания сути предмета, умеет решать простейшие практические задачи и отвечать на основные вопросы. "
+            "Допускаются несущественные неточности в изложении материала."
+        ))
+        criteria_entries.append((
+            "«не зачтено»",
+            "Обучающийся демонстрирует отсутствие базовых знаний по ключевым разделам дисциплины, "
+            "не может ответить на наводящие вопросы преподавателя и решить простейшие типовые задачи."
+        ))
+
+    for grade, crit_text in criteria_entries:
+        row_d = table_desc.add_row().cells
+        set_row_cant_split(table_desc.rows[-1])
+        set_cell_text(row_d[0], grade, align=WD_ALIGN_PARAGRAPH.CENTER, size_pt=10)
+        set_cell_text(row_d[1], crit_text, size_pt=10)
+        set_cell_width(row_d[0], 4.0)
+        set_cell_width(row_d[1], 12.0)
